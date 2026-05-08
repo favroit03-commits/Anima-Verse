@@ -1,6 +1,6 @@
 import { Stream, ProviderContext, TextTracks } from "../types";
 
-export const mpGetStream = async function ({
+export const getStream = async function ({
   link: id,
   type,
   providerContext,
