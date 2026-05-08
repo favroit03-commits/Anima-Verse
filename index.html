@@ -922,22 +922,7 @@ img[style*="opacity: 1"], img[style*="opacity:1"] { opacity: 1; }
     <!-- Left: Player & Controls -->
     <div class="flex-1 flex flex-col min-w-0 bg-gray-900 relative">
       <div class="w-full aspect-video min-h-[50vh] md:min-h-[70vh] bg-black relative shadow-lg group">
-        <iframe x-show="!isNativePlayer" :src="playerUrl" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="no-referrer-when-downgrade" loading="lazy"></iframe>
-        <video x-ref="nativePlayer" x-show="isNativePlayer" class="absolute inset-0 w-full h-full object-contain bg-black" controls playsinline></video>
-        
-        <div x-show="isNativePlayer && nativeStreams.length > 1" class="absolute top-4 right-4 z-[50]">
-            <select x-model="currentNativeStream" @change="changeNativeStream()" class="bg-black/80 text-white font-medium border border-white/20 rounded-lg px-3 py-1.5 text-sm backdrop-blur-md outline-none cursor-pointer hover:bg-black transition-colors shadow-lg">
-                <template x-for="(s, index) in nativeStreams" :key="index">
-                    <option :value="index" x-text="(s.server || 'Server') + (s.quality ? ' - ' + s.quality : '') + (s.lang ? ' (' + s.lang + ')' : '')"></option>
-                </template>
-            </select>
-        </div>
-        <div x-show="nativePlayerLoading" class="absolute inset-0 flex items-center justify-center bg-black/80 z-[60]">
-            <div class="text-center">
-                <i class="fas fa-circle-notch fa-spin text-primary text-4xl mb-4"></i>
-                <p class="text-white font-bold text-sm" x-text="nativePlayerStatus || 'Finding best stream...'"></p>
-            </div>
-        </div>
+        <iframe :src="playerUrl" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="no-referrer-when-downgrade" loading="lazy"></iframe>
 
         <!-- Ad Overlay script (Simulated for AnimaVerse) -->
         <div id="adVerificationOverlay" class="absolute inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
@@ -960,11 +945,6 @@ img[style*="opacity: 1"], img[style*="opacity:1"] { opacity: 1; }
                   <i class="fas fa-server text-purple-400"></i>
                   <span class="text-gray-300 font-medium whitespace-nowrap text-sm">Server:</span>
                   <select :value="playerProvider" @change="switchPlayerProvider($event.target.value)" class="w-full sm:w-auto bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 outline-none font-semibold">
-                      <optgroup label="AnimaVerse API (Ad-Free Direct)" x-show="availableApiProviders.length > 0">
-                          <template x-for="prov in availableApiProviders" :key="prov">
-                              <option :value="'api-' + prov" x-text="prov.charAt(0).toUpperCase() + prov.slice(1)"></option>
-                          </template>
-                      </optgroup>
                       <optgroup label="Web Players">
                           <option value="vidbinge">VidBinge (Ad-Free & Best)</option>
                       <option value="indra">Indra (Ad-Free)</option>
@@ -1180,18 +1160,8 @@ img[style*="opacity: 1"], img[style*="opacity:1"] { opacity: 1; }
             </button>
           </div>
           
-          <h3 class="text-white font-bold mb-3 mt-6" x-show="availableApiProviders.length > 0">Direct API Servers (No Ads, Native Player)</h3>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar" x-show="availableApiProviders.length > 0">
-            <template x-for="prov in availableApiProviders" :key="prov">
-                <button @click="playerProvider='api-'+prov;saveSettings()" class="provider-card" :class="playerProvider==='api-'+prov?'active-screenscape':''">
-                  <div class="provider-check bg-[#0ea5e9] text-white"><i class="fas fa-check"></i></div>
-                  <i class="fas fa-server text-xl" :class="playerProvider==='api-'+prov?'text-[#0ea5e9]':''"></i>
-                  <span x-text="prov.charAt(0).toUpperCase() + prov.slice(1)"></span><span class="provider-badge bg-[#0ea5e9]/10 text-[#0ea5e9]">API</span>
-                </button>
-            </template>
-          </div>
           <div class="mt-3 p-3 rounded-xl border text-xs leading-relaxed transition-all duration-300"
-               :class="{'bg-[#FAEDCD]/5 border-[#FAEDCD]/10 text-[#FAEDCD]/70':playerProvider==='vidbinge','bg-[#D4A373]/5 border-[#D4A373]/10 text-[#D4A373]/70':playerProvider==='indra','bg-[#E9C46A]/5 border-[#E9C46A]/10 text-[#E9C46A]/70':playerProvider==='vembed','bg-[#A68A64]/5 border-[#A68A64]/10 text-[#A68A64]/70':playerProvider==='mafia','bg-[#ef4444]/5 border-[#ef4444]/10 text-[#ef4444]/70':playerProvider==='moviesapi','bg-[#8b5cf6]/5 border-[#8b5cf6]/10 text-[#8b5cf6]/70':playerProvider==='smashy','bg-[#0ea5e9]/5 border-[#0ea5e9]/10 text-[#0ea5e9]/70':playerProvider==='screenscape'||playerProvider.startsWith('api-')}">
+               :class="{'bg-[#FAEDCD]/5 border-[#FAEDCD]/10 text-[#FAEDCD]/70':playerProvider==='vidbinge','bg-[#D4A373]/5 border-[#D4A373]/10 text-[#D4A373]/70':playerProvider==='indra','bg-[#E9C46A]/5 border-[#E9C46A]/10 text-[#E9C46A]/70':playerProvider==='vembed','bg-[#A68A64]/5 border-[#A68A64]/10 text-[#A68A64]/70':playerProvider==='mafia','bg-[#ef4444]/5 border-[#ef4444]/10 text-[#ef4444]/70':playerProvider==='moviesapi','bg-[#8b5cf6]/5 border-[#8b5cf6]/10 text-[#8b5cf6]/70':playerProvider==='smashy','bg-[#0ea5e9]/5 border-[#0ea5e9]/10 text-[#0ea5e9]/70':playerProvider==='screenscape'}">
             <template x-if="playerProvider==='vidbinge'"><span><i class="fas fa-fire mr-1"></i>Premium source with subtitles, multiple servers & best quality.</span></template>
             <template x-if="playerProvider==='indra'"><span><i class="fas fa-bolt mr-1"></i>Fast loading with multi-quality support.</span></template>
             <template x-if="playerProvider==='vembed'"><span><i class="fas fa-cloud mr-1"></i>Reliable fallback with consistent quality.</span></template>
@@ -1199,7 +1169,6 @@ img[style*="opacity: 1"], img[style*="opacity:1"] { opacity: 1; }
             <template x-if="playerProvider==='moviesapi'"><span><i class="fas fa-film mr-1"></i>MoviesAPI: Smooth playback, fast servers.</span></template>
             <template x-if="playerProvider==='smashy'"><span><i class="fas fa-play mr-1"></i>Smashy Stream: Fast loading multi-server.</span></template>
             <template x-if="playerProvider==='screenscape'"><span><i class="fas fa-desktop mr-1"></i>ScreenScape: Multi-language support and fast.</span></template>
-            <template x-if="playerProvider.startsWith('api-')"><span><i class="fas fa-bolt mr-1"></i>Direct API Stream: Native player, ad-free.</span></template>
           </div>
         </div>
         <div>
@@ -1299,8 +1268,6 @@ function app(){
     activeTab:'home',loading:false,heroMovie:null,contentRows:[],
     showModal:false,selectedMovie:null,modalDetails:null,modalSeason:1,modalEpisodes:[],
     isPlayerOpen:false,playerUrl:'',playingContent:null,
-    isNativePlayer:false, nativePlayerLoading:false, nativePlayerStatus:'', hlsInstance:null, nativeStreams:[], currentNativeStream:0,
-    apiProvidersList:[], currentApiProviderIndex:0, availableApiProviders:[],
     selectedSeason:1,selectedEpisode:1,totalSeasons:1,episodes:[],
     myList:[],continueWatching:[],playerProvider:'vidbinge',
     showSettings:false,settingsTab:'settings',profileDD:false,
@@ -1447,13 +1414,11 @@ function app(){
     async loadUserData(u){try{const snap=await fbDB.ref('users/'+u.uid).once('value');const d=snap.val();if(d){this.userRole=d.role||'User';}else{const r='User';await fbDB.ref('users/'+u.uid).set({uid:u.uid,email:u.email,name:u.displayName||'',role:r,photoURL:u.photoURL||'',createdAt:Date.now()});this.userRole=r;}}catch(e){this.userRole='User';}},
     async fetchAllUsers(){try{const s=await fbDB.ref('users').once('value');this.allUsers=s.val()?Object.values(s.val()):[];}catch(e){}},
     async signOut(){try{await fbAuth.signOut();}catch(e){}this.currentProfile=null;this.firebaseUser=null;this.authState='auth';this.authView='signin';this.authMode='signin';this.authEmail='';this.authPassword='';this.authName='';this.authError='';this.authSuccess='';this.isPlayerOpen=false;this.playerUrl='';this.heroMovie=null;this.contentRows=[];this.profileDD=false;safeStorage.removeItem('av_profile');
-      if(this.hlsInstance){ this.hlsInstance.destroy(); this.hlsInstance=null; }
     },
 
     // ===== App =====
     async loadAppData(){
       const sp=safeStorage.getItem('av_profiles');if(sp)this.profiles=JSON.parse(sp);this.myList=JSON.parse(safeStorage.getItem('av_mylist')||'[]');this.continueWatching=JSON.parse(safeStorage.getItem('av_continue')||'[]');this.playerProvider=safeStorage.getItem('av_player')||'vidbinge';
-      try{const res=await fetch('https://animaverse-806ubdho.b4a.run/api/providers');const data=await res.json();this.availableApiProviders=data.providers||[];}catch(e){}
     },
     selectProfile(p){this.currentProfile=p;safeStorage.setItem('av_profile',JSON.stringify(p));this.authState='app';this.showSettings=false;this.loadAppData();this.loadHomeContent();},
     goToProfileSelect(){this.currentProfile=null;safeStorage.removeItem('av_profile');this.authState='profileSelect';this.isPlayerOpen=false;this.showSettings=false;this.activeTab='home';},
@@ -1523,7 +1488,7 @@ function app(){
       if(vbT.length>0)this.contentRows.push({title:'🔥 Trending Today',items:vbT,isVidBinge:true});
       if(vbW.length>0)this.contentRows.push({title:'📈 Trending This Week',items:vbW,isVidBinge:true});
       if(vbP.length>0)this.contentRows.push({title:'Most Watched',items:vbP,isVidBinge:true});
-      const rows=[{title:'Popular Animated',ep:`/discover/movie?with_genres=${AN}&sort_by=popularity.desc&page=1`},{title:'Top Rated',ep:`/discover/movie?with_genres=${AN}&sort_by=vote_average.desc&vote_count.gte=500`},{title:'Now Playing',ep:'/movie/now_playing?page=1'},{title:'Upcoming',ep:'/movie/upcoming?page=1'},{title:'Comedy',ep:'/discover/movie?with_genres=35,16&sort_by=popularity.desc'},{title:'Family',ep:'/discover/movie?with_genres=10751&sort_by=popularity.desc'},{title:'Sci-Fi',ep:'/discover/movie?with_genres=14,878&sort_by=popularity.desc'},{title:'All Popular',ep:'/movie/popular?page=1'}];
+      const rows=[{title:'Popular Animated',ep:`/discover/movie?with_genres=${AN}&sort_by=popularity.desc&page=1`},{title:'Top Rated',ep:`/discover/movie?with_genres=${AN}&sort_by=vote_average.desc&vote_count.gte=500`},{title:'Now Playing',ep:'/movie/now_playing?page=1'},{title:'Upcoming',ep:'/movie/upcoming?page=1'},{title:'Comedy',ep:`/discover/movie?with_genres=35,16&sort_by=popularity.desc`},{title:'Family',ep:'/discover/movie?with_genres=10751&sort_by=popularity.desc'},{title:'Sci-Fi',ep:'/discover/movie?with_genres=14,878&sort_by=popularity.desc'},{title:'All Popular',ep:'/movie/popular?page=1'}];
       const res=await Promise.all(rows.map(async r=>({title:r.title,items:(await this.tmdb(r.ep)).slice(0,20)})));
       res.forEach(r=>this.contentRows.push(r));
       if(vbT.length>0){const mid=Math.max(1,Math.floor(this.contentRows.length/2));this.contentRows.splice(mid,0,{title:'🔥 Top Trending Movies',items:vbT.slice(0,4),isTopList:true});}
@@ -1583,110 +1548,7 @@ function app(){
       }
     },
     async handleProviderPlay(item, s, e) {
-       if(this.hlsInstance){ this.hlsInstance.destroy(); this.hlsInstance=null; }
-       if(this.$refs.nativePlayer) { this.$refs.nativePlayer.pause(); this.$refs.nativePlayer.removeAttribute('src'); this.$refs.nativePlayer.load(); }
-       this.nativeStreams = [];
-       this.currentNativeStream = 0;
-       
-       if(this.playerProvider.startsWith('api-')) {
-           this.isNativePlayer = true;
-           this.playerUrl = '';
-           this.nativePlayerLoading = true;
-           
-           this.apiProvidersList = [this.playerProvider.replace('api-', '')];
-           this.currentApiProviderIndex = 0;
-           
-           this.tryNextApiProvider();
-       } else {
-           this.isNativePlayer = false;
-           this.playerUrl = this.isTV(item) ? this.getPlayerUrl(item, s, e) : this.getPlayerUrl(item);
-       }
-    },
-    async tryNextApiProvider() {
-        if (this.currentApiProviderIndex >= this.apiProvidersList.length) {
-            this.nativePlayerStatus = 'Server Error or Dead Link. Please select another Server from settings.';
-            return;
-        }
-        const prov = this.apiProvidersList[this.currentApiProviderIndex];
-        this.nativePlayerStatus = `Trying API Server: ${prov}...`;
-        const type = this.isTV(this.playingContent) ? 'series' : 'movie';
-        let urlPayload = '';
-        
-        try {
-            if (prov === 'autoEmbed' || prov === 'moviesApi') {
-                urlPayload = JSON.stringify({ tmdbId: this.playingContent.id || this.playingContent.tmdb_id, season: this.selectedSeason||1, episode: this.selectedEpisode||1, type });
-            } else {
-                this.nativePlayerStatus = `Searching on ${prov}...`;
-                const title = this.playingContent.title || this.playingContent.name || this.playingContent.original_name;
-                const searchRes = await fetch(`https://animaverse-806ubdho.b4a.run/api/search?provider=${prov}&query=${encodeURIComponent(title)}`);
-                const searchData = await searchRes.json();
-                
-                if (searchData.results && searchData.results.length > 0) {
-                    urlPayload = searchData.results[0].link;
-                } else {
-                    throw new Error('No search results found');
-                }
-            }
-
-            this.nativePlayerStatus = `Extracting streams from ${prov}...`;
-            const res = await fetch(`https://animaverse-806ubdho.b4a.run/api/stream?provider=${prov}&type=${type}&url=${encodeURIComponent(urlPayload)}`);
-            const data = await res.json();
-            if(data.streams && data.streams.length > 0) {
-                this.nativePlayerStatus = 'Streams found! Loading video...';
-                this.nativeStreams = data.streams;
-                this.playNativeStream(0);
-            } else {
-                this.currentApiProviderIndex++;
-                this.tryNextApiProvider();
-            }
-        } catch(err) {
-            console.log(`Provider ${prov} failed:`, err);
-            this.currentApiProviderIndex++;
-            this.tryNextApiProvider();
-        }
-    },
-    playNativeStream(index) {
-        this.currentNativeStream = index;
-        const stream = this.nativeStreams[index];
-        if(!stream) return;
-        const video = this.$refs.nativePlayer;
-        const currentTime = video.currentTime || 0;
-        if(this.hlsInstance){ this.hlsInstance.destroy(); this.hlsInstance=null; }
-        
-        video.onerror = () => {
-            console.log('Video playback failed for stream', index);
-            if(this.currentNativeStream < this.nativeStreams.length - 1) {
-                this.nativePlayerStatus = 'Stream failed, switching to next quality...';
-                this.playNativeStream(this.currentNativeStream + 1);
-            } else {
-                this.nativePlayerStatus = 'All video links failed on this Server.';
-                this.currentApiProviderIndex++;
-                this.tryNextApiProvider();
-            }
-        };
-
-        const isM3U8 = stream.link.includes('.m3u8') || stream.type === 'm3u8';
-        if (window.Hls && Hls.isSupported() && isM3U8) {
-            this.hlsInstance = new Hls();
-            this.hlsInstance.loadSource(stream.link);
-            this.hlsInstance.attachMedia(video);
-            this.hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) { video.onerror(); }
-            });
-            this.hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                if(currentTime > 0) video.currentTime = currentTime;
-                video.play().catch(e=>video.onerror());
-                this.nativePlayerLoading = false;
-            });
-        } else {
-            video.src = stream.link;
-            video.onloadeddata = () => { this.nativePlayerLoading = false; };
-            if(currentTime > 0) video.currentTime = currentTime;
-            video.play().catch(e=>video.onerror());
-        }
-    },
-    changeNativeStream() {
-        this.playNativeStream(Number(this.currentNativeStream));
+       this.playerUrl = this.isTV(item) ? this.getPlayerUrl(item, s, e) : this.getPlayerUrl(item);
     },
     async playContent(item){
       this.showModal=false;this.playingContent=item;this.isPlayerOpen=true;
@@ -1713,8 +1575,6 @@ function app(){
     },
     closePlayer(){
       this.isPlayerOpen=false;this.playerUrl='';this.playingContent=null;
-      if(this.hlsInstance){ this.hlsInstance.destroy(); this.hlsInstance=null; }
-      if(this.$refs.nativePlayer) { this.$refs.nativePlayer.pause(); this.$refs.nativePlayer.removeAttribute('src'); this.$refs.nativePlayer.load(); }
     },
     isInMyList(id){return this.myList.some(i=>i.id===id);},
     toggleMyList(item){if(!item)return;if(this.isInMyList(item.id))this.myList=this.myList.filter(i=>i.id!==item.id);else this.myList.push({...item});safeStorage.setItem('av_mylist',JSON.stringify(this.myList));},
