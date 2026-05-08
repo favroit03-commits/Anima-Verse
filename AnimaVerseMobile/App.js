@@ -12,6 +12,7 @@ export default function App() {
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
         mixedContentMode="always"
+        allowsFullscreenVideo={true}
       />
       <StatusBar style="light" hidden={true} />
     </View>
