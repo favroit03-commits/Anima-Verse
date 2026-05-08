@@ -34,14 +34,14 @@ jobs:
       - name: Prebuild Expo
         run: npx expo prebuild --platform android --no-install
 
-      - name: Build Android APK (Release)
+      - name: Build Android APK (Debug)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AnimaVerse-App
-          path: vega-app-main/android/app/build/outputs/apk/release/*.apk
+          path: vega-app-main/android/app/build/outputs/apk/debug/*.apk
