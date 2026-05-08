@@ -34,14 +34,19 @@ jobs:
       - name: Prebuild Expo
         run: npx expo prebuild --platform android --no-install
 
-      - name: Build Android APK (Debug)
+      - name: Build Android APK (Release Standalone)
+        env:
+          MYAPP_UPLOAD_STORE_FILE: debug.keystore
+          MYAPP_UPLOAD_KEY_ALIAS: androiddebugkey
+          MYAPP_UPLOAD_STORE_PASSWORD: android
+          MYAPP_UPLOAD_KEY_PASSWORD: android
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AnimaVerse-App
-          path: vega-app-main/android/app/build/outputs/apk/debug/*.apk
+          path: vega-app-main/android/app/build/outputs/apk/release/*.apk
