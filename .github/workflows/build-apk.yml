@@ -36,12 +36,14 @@ jobs:
 
       - name: Build Android APK (Release Standalone)
         env:
-          MYAPP_UPLOAD_STORE_FILE: debug.keystore
-          MYAPP_UPLOAD_KEY_ALIAS: androiddebugkey
-          MYAPP_UPLOAD_STORE_PASSWORD: android
-          MYAPP_UPLOAD_KEY_PASSWORD: android
+          MYAPP_UPLOAD_STORE_FILE: my-release-key.keystore
+          MYAPP_UPLOAD_KEY_ALIAS: my-key-alias
+          MYAPP_UPLOAD_STORE_PASSWORD: password
+          MYAPP_UPLOAD_KEY_PASSWORD: password
         run: |
-          cd android
+          cd android/app
+          keytool -genkey -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=AnimaVerse, OU=AnimaVerse, O=AnimaVerse, L=City, S=State, C=US" -storepass password -keypass password
+          cd ..
           chmod +x gradlew
           ./gradlew assembleRelease
 
