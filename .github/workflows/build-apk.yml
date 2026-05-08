@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths:
-      - 'vega-app-main/**'
+      - 'AnimaVerseMobile/**'
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./vega-app-main
+        working-directory: ./AnimaVerseMobile
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AnimaVerse-App
-          path: vega-app-main/android/app/build/outputs/apk/release/*.apk
+          path: AnimaVerseMobile/android/app/build/outputs/apk/release/*.apk

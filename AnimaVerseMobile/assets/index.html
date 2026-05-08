@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AnimaVerse — Premium Animated Streaming</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+
+<style>
+@theme {
+  --color-primary: #D48C5B;
+  --color-primary-light: #F2C7A7;
+  --color-primary-dark: #A35A36;
+  --color-accent: #E3A072;
+  --color-accent2: #C27A4E;
+  --color-surface: #0f0f12;
+  --color-surface-2: #15151a;
+  --color-surface-3: #202028;
+  --color-muted: #8b8fa3;
+  --color-yellow: #fbbf24;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #08090D; color: #E8E9ED;
+  overflow-x: hidden; min-height: 100vh; min-height: 100dvh; line-height: 1.6;
+}
+.font-display { font-family: 'Space Grotesk', sans-serif; }
+[x-cloak] { display: none !important; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 10px; }
+
+/* ===== SPLASH SCREEN ===== */
+.splash-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #08090D;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  transition: opacity 0.6s cubic-bezier(0.4,0,0.2,1), visibility 0.6s;
+}
+.splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+@keyframes splashPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}
+@keyframes splashBar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+.splash-logo { animation: splashPulse 1.5s ease-in-out infinite; }
+.splash-bar { animation: splashBar 2s ease-out forwards; }
+
+/* ===== AUTH ===== */
+.auth-bg { background: #08090D; position: relative; }
+.auth-bg::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 20%, rgba(139,92,246,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(6,182,212,0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+.auth-card {
+  background: rgba(15,17,23,0.95);
+  border: 1px solid rgba(42,45,62,0.8);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+}
+.auth-input {
+  width: 100%; padding: 14px 14px 14px 46px;
+  background: rgba(26,29,46,0.6);
+  border: 1.5px solid rgba(42,45,62,0.8);
+  border-radius: 14px; color: white; font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1); outline: none;
+}
+.auth-input:focus { border-color: #8B5CF6; box-shadow: 0 0 0 4px rgba(139,92,246,0.1); background: rgba(26,29,46,0.8); }
+.auth-input::placeholder { color: rgba(139,143,163,0.5); }
+.auth-input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #8B8FA3; font-size: 13px; pointer-events: none; transition: color 0.3s ease; }
+.auth-input:focus ~ .auth-input-icon,
+.auth-input:focus + .auth-input-icon { color: #8B5CF6; }
+.auth-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  color: white; font-weight: 700; font-size: 14px;
+  border: none; border-radius: 14px; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  position: relative; overflow: hidden;
+}
+.auth-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: translateX(-100%); transition: transform 0.5s ease;
+}
+.auth-btn:hover::after { transform: translateX(100%); }
+.auth-btn:hover { box-shadow: 0 8px 30px rgba(139,92,246,0.35); transform: translateY(-2px); }
+.auth-btn:active { transform: translateY(0) scale(0.98); }
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+.auth-btn:disabled::after { display: none; }
+
+.otp-box {
+  width: 48px; height: 56px; text-align: center; font-size: 20px; font-weight: 700;
+  background: rgba(26,29,46,0.6); border: 1.5px solid rgba(42,45,62,0.8);
+  border-radius: 12px; color: white; outline: none;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.otp-box:focus { border-color: #8B5CF6; box-shadow: 0 0 0 4px rgba(139,92,246,0.1); transform: translateY(-2px); }
+@media (max-width: 380px) { .otp-box { width: 40px; height: 48px; font-size: 16px; } }
+
+.auth-tab {
+  flex: 1; padding: 11px; font-size: 13px; font-weight: 600;
+  border-radius: 12px; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); cursor: pointer;
+  border: none; color: #8B8FA3; position: relative;
+}
+.auth-tab.active {
+  background: #8B5CF6; color: white;
+  box-shadow: 0 4px 16px rgba(139,92,246,0.3);
+  transform: scale(1.02);
+}
+
+.google-btn {
+  width: 100%; padding: 13px; background: transparent;
+  border: 1.5px solid rgba(42,45,62,0.8); border-radius: 14px;
+  color: white; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.google-btn:hover { background: rgba(255,255,255,0.04); border-color: rgba(139,143,163,0.3); transform: translateY(-1px); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+.shake { animation: shake 0.5s cubic-bezier(0.36,0.07,0.19,0.97); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.fade-up { animation: fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+@keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+.fade-down { animation: fadeDown 0.5s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+
+@keyframes scaleIn { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
+.scale-in { animation: scaleIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+@keyframes slideUp { from{opacity:0;transform:translateY(100%)} to{opacity:1;transform:translateY(0)} }
+.slide-up { animation: slideUp 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+.float { animation: float 3s ease-in-out infinite; }
+
+@keyframes glow { 0%,100%{box-shadow:0 0 20px rgba(139,92,246,0.2)} 50%{box-shadow:0 0 40px rgba(139,92,246,0.4)} }
+.glow { animation: glow 2s ease-in-out infinite; }
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* ===== BADGES ===== */
+.badge-admin { background: linear-gradient(135deg, #F59E0B, #EF4444); }
+.badge-user { background: linear-gradient(135deg, #8B5CF6, #06B6D4); }
+
+/* ===== PROFILE CARDS ===== */
+.profile-card {
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.profile-card:hover { transform: translateY(-10px) scale(1.05); }
+.profile-card:active { transform: scale(0.93); }
+.profile-card .p-avatar { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); }
+.profile-card:hover .p-avatar {
+  box-shadow: 0 0 0 4px rgba(139,92,246,0.5), 0 16px 40px rgba(139,92,246,0.25);
+}
+
+/* ===== NAV ===== */
+.nav-solid {
+  background: rgba(8,9,13,0.97);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(42,45,62,0.3);
+}
+
+/* ===== BACK BUTTON ===== */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 14px;
+  background: rgba(26,29,46,0.5);
+  border: 1px solid rgba(42,45,62,0.5);
+  color: #8B8FA3; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(10px);
+}
+.back-btn:hover { background: rgba(42,45,62,0.5); color: white; border-color: rgba(139,92,246,0.3); transform: translateX(-4px); }
+.back-btn:active { transform: scale(0.95); }
+.back-btn i { transition: transform 0.3s ease; }
+.back-btn:hover i { transform: translateX(-3px); }
+
+/* ===== MOVIE CARDS ===== */
+.movie-card {
+  border-radius: 12px; overflow: hidden; position: relative; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+@media (hover: hover) {
+  .movie-card:hover {
+    transform: scale(1.08) translateY(-6px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.1);
+    z-index: 10;
+  }
+  .movie-card:hover .mc-overlay { opacity: 1; }
+  .movie-card:hover .mc-info { opacity: 1; transform: translateY(0); }
+  .movie-card:hover .mc-play { opacity: 1; transform: scale(1); }
+}
+.movie-card:active { transform: scale(0.95); }
+.mc-overlay { opacity: 0; transition: opacity 0.35s ease; }
+.mc-info { opacity: 0; transform: translateY(8px); transition: all 0.35s ease; }
+.mc-play { opacity: 0; transform: scale(0.5); transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+.movie-card img { transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+@media (hover: hover) { .movie-card:hover img { transform: scale(1.06); } }
+
+/* ===== HERO ===== */
+.hero-grad {
+  background: linear-gradient(to right, #08090D 0%, rgba(8,9,13,0.85) 35%, transparent 100%),
+              linear-gradient(to top, #08090D 0%, rgba(8,9,13,0.5) 25%, transparent 55%);
+}
+@media (max-width: 768px) {
+  .hero-grad { background: linear-gradient(to top, #08090D 0%, rgba(8,9,13,0.75) 35%, rgba(8,9,13,0.2) 100%); }
+}
+
+/* ===== ROW ===== */
+.row-scroll { scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+.row-scroll::-webkit-scrollbar { display: none; }
+.row-arrow { opacity: 0; transition: all 0.3s ease; }
+.row-wrap:hover .row-arrow { opacity: 1; }
+@media (max-width: 768px) { .row-arrow { display: none !important; } }
+
+/* ===== MODAL ===== */
+@keyframes modalUp { from{opacity:0;transform:translateY(40px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+.modal-up { animation: modalUp 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+/* ===== PLAYER ===== */
+.player-wrap {
+  position: relative; padding-bottom: 56.25%; height: 0;
+  background: #000; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.player-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+.player-wrap.vidbinge-mode { padding-bottom: 0; height: 75vh; max-height: 700px; }
+@media (max-width: 768px) { .player-wrap.vidbinge-mode { height: 56vw; max-height: 400px; } }
+
+/* ===== EPISODE ROW ===== */
+.ep-row { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); border-radius: 14px; }
+.ep-row:hover { background: rgba(139,92,246,0.06); transform: translateX(4px); }
+
+/* ===== SKELETON ===== */
+.skel {
+  background: linear-gradient(90deg, #1A1D2E 25%, #2A2D3E 50%, #1A1D2E 75%);
+  background-size: 200% 100%; animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 12px;
+}
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+
+/* ===== TOP RANKING ===== */
+.top-rank-card {
+  position: relative; display: flex; align-items: flex-end; justify-content: flex-end;
+  width: 220px; aspect-ratio: 2/1.4; margin-left: 25px;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) { .top-rank-card:hover { transform: scale(1.08) translateY(-6px); z-index: 10; } }
+.top-rank-card:active { transform: scale(0.95); }
+.top-rank-number {
+  position: absolute; left: -35px; bottom: -28px; font-size: 180px; font-weight: 900; line-height: 1;
+  color: #08090D; -webkit-text-stroke: 4px #8b8fa3; text-shadow: 0 0 20px rgba(0,0,0,0.5);
+  font-family: 'Inter', sans-serif; z-index: 1; letter-spacing: -10px; transition: all 0.4s ease; pointer-events: none;
+}
+.top-rank-card:hover .top-rank-number { -webkit-text-stroke: 4px #E3A072; color: rgba(227,160,114,0.1); transform: translateX(-5px); }
+.top-rank-poster {
+  position: relative; width: 130px; height: 100%; border-radius: 16px; z-index: 2;
+  box-shadow: -15px 0 25px rgba(0,0,0,0.8); overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+}
+.top-rank-poster img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 768px) {
+  .top-rank-card { width: 180px; margin-left: 15px; }
+  .top-rank-number { font-size: 150px; left: -25px; bottom: -20px; -webkit-text-stroke: 3px #8b8fa3; letter-spacing: -8px; }
+  .top-rank-poster { width: 100px; }
+}
+
+/* ===== UTILITIES ===== */
+.gradient-text { background: linear-gradient(135deg, #8B5CF6, #06B6D4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tag { display:inline-flex; align-items:center; gap:3px; padding:4px 10px; border-radius:8px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: rgba(8,9,13,0.97);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid rgba(42,45,62,0.4);
+  padding: 4px 0 calc(4px + env(safe-area-inset-bottom));
+  display: flex;
+}
+.bottom-nav button {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 0; font-size: 10px; font-weight: 500;
+  color: #8B8FA3; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  -webkit-tap-highlight-color: transparent; border: none; background: none; cursor: pointer;
+  position: relative;
+}
+.bottom-nav button.active { color: #8B5CF6; }
+.bottom-nav button.active::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 20px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+}
+.bottom-nav button i { font-size: 18px; transition: transform 0.3s ease; }
+.bottom-nav button.active i { transform: scale(1.15); }
+@media (max-width: 768px) { .main-content-pad { padding-bottom: calc(70px + env(safe-area-inset-bottom)); } }
+@media (max-width: 768px) { .movie-card:active { transform: scale(0.95); } .mc-overlay { display: none; } }
+
+/* ===== IMAGE LOADING ===== */
+img { opacity: 0; transition: opacity 0.4s ease; }
+img.loaded { opacity: 1; }
+img[style*="opacity: 1"], img[style*="opacity:1"] { opacity: 1; }
+
+/* ===== PLAYER PROVIDER ===== */
+.provider-card {
+  position: relative; padding: 16px 8px; border-radius: 16px; border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; background: rgba(26,29,46,0.3);
+}
+.provider-card:hover { background: rgba(26,29,46,0.6); transform: translateY(-2px); }
+.provider-card.active-indra { border-color: #D4A373; background: rgba(212,163,115,0.1); color: white; }
+.provider-card.active-vembed { border-color: #E9C46A; background: rgba(233,196,106,0.1); color: white; }
+.provider-card.active-vidbinge { border-color: #FAEDCD; background: rgba(250,237,205,0.1); color: white; }
+.provider-card.active-mafia { border-color: #A68A64; background: rgba(166,138,100,0.1); color: white; }
+.provider-card.active-screenscape { border-color: #0ea5e9; background: rgba(14,165,233,0.1); color: white; }
+.provider-card:not([class*="active-"]) { color: #8B8FA3; border-color: rgba(42,45,62,0.5); }
+.provider-card .provider-check {
+  position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 8px;
+  opacity: 0; transform: scale(0.5);
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.provider-card[class*="active-"] .provider-check { opacity: 1; transform: scale(1); }
+.provider-card .provider-badge {
+  font-size: 8px; padding: 2px 6px; border-radius: 6px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;
+}
+
+/* Player switch pill */
+.player-switch-pill {
+  display: inline-flex; background: rgba(15,17,23,0.95); border: 1px solid rgba(42,45,62,0.6);
+  border-radius: 14px; padding: 3px; gap: 2px; backdrop-filter: blur(10px);
+}
+.player-switch-pill button {
+  padding: 8px 14px; border-radius: 11px; font-size: 11px; font-weight: 600;
+  border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  color: #8B8FA3; background: transparent;
+}
+.player-switch-pill button:hover { color: white; }
+.player-switch-pill button.ps-active-indra { background: rgba(212,163,115,0.15); color: #D4A373; }
+.player-switch-pill button.ps-active-vembed { background: rgba(233,196,106,0.15); color: #E9C46A; }
+.player-switch-pill button.ps-active-vidbinge { background: rgba(250,237,205,0.15); color: #FAEDCD; }
+.player-switch-pill button.ps-active-mafia { background: rgba(166,138,100,0.15); color: #A68A64; }
+
+/* VB badge */
+.vb-available {
+  position: absolute; top: 6px; left: 6px; z-index: 5;
+  background: #F472B6; color: black;
+  padding: 3px 6px; border-radius: 6px; font-size: 8px; font-weight: 800;
+  text-transform: lowercase; letter-spacing: 0px;
+}
+
+/* ===== SMOOTH TRANSITIONS ===== */
+.page-transition {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.page-enter { opacity: 0; transform: translateY(10px); }
+.page-active { opacity: 1; transform: translateY(0); }
+
+/* ===== GLASS EFFECT ===== */
+.glass {
+  background: rgba(15,17,23,0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(42,45,62,0.4);
+}
+
+/* ===== BUTTON RIPPLE ===== */
+.ripple-btn { position: relative; overflow: hidden; }
+.ripple-btn .ripple-effect {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  pointer-events: none;
+  animation: ripple 0.6s ease-out forwards;
+}
+
+/* ===== HOVER GLOW ===== */
+.hover-glow {
+  position: relative;
+}
+.hover-glow::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit;
+  background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(6,182,212,0.3));
+  opacity: 0; z-index: -1; filter: blur(8px);
+  transition: opacity 0.4s ease;
+}
+.hover-glow:hover::before { opacity: 1; }
+
+/* ===== SCROLL REVEAL ===== */
+.reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.4,0,0.2,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ===== PARTICLE BG ===== */
+.particles {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.particle {
+  position: absolute; width: 2px; height: 2px; border-radius: 50%;
+  background: rgba(139,92,246,0.3);
+  animation: particleFloat linear infinite;
+}
+@keyframes particleFloat {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+}
+</style>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- ==================== SPLASH SCREEN ==================== -->
+<div class="splash-screen" :class="splashDone ? 'hidden' : ''" id="splash">
+  <div class="splash-logo mb-6">
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-2xl glow">
+      <i class="fas fa-play text-white text-2xl ml-1"></i>
+    </div>
+  </div>
+  <span class="font-display text-3xl font-bold gradient-text mb-2">AnimaVerse</span>
+  <p class="text-muted text-xs tracking-widest uppercase mb-8">Loading your universe...</p>
+  <div class="w-48 h-1 bg-surface-3 rounded-full overflow-hidden">
+    <div class="splash-bar h-full bg-gradient-to-r from-primary to-accent rounded-full"></div>
+  </div>
+</div>
+
+<!-- ==================== PARTICLES ==================== -->
+<div class="particles" x-show="authState==='auth'" x-cloak>
+  <template x-for="i in 20" :key="'p'+i">
+    <div class="particle" :style="`left:${Math.random()*100}%;animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*5}s;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;`"></div>
+  </template>
+</div>
+
+<!-- ==================== AUTH SCREEN ==================== -->
+<div x-show="authState==='auth'" x-cloak
+     x-transition:enter="transition ease-out duration-500"
+     x-transition:enter-start="opacity-0 scale-95"
+     x-transition:enter-end="opacity-100 scale-100"
+     x-transition:leave="transition ease-in duration-400"
+     x-transition:leave-start="opacity-100 scale-100"
+     x-transition:leave-end="opacity-0 scale-95"
+     class="fixed inset-0 z-[200] auth-bg flex items-center justify-center p-5 overflow-y-auto">
+  <div class="relative w-full max-w-[400px] mx-auto" style="z-index:1">
+    <!-- Logo -->
+    <div class="text-center mb-8 fade-up">
+      <div class="inline-flex items-center gap-3 mb-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl float">
+          <i class="fas fa-play text-white text-lg ml-0.5"></i>
+        </div>
+        <span class="font-display text-4xl font-bold gradient-text">AnimaVerse</span>
+      </div>
+      <p class="text-muted text-xs tracking-[0.2em] uppercase">Premium Animated Streaming</p>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="auth-card rounded-3xl overflow-hidden hover-glow" style="animation: fadeUp 0.6s cubic-bezier(0.4,0,0.2,1) 0.1s both">
+
+      <!-- OTP VIEW -->
+      <div x-show="authView==='otp'" class="p-7 sm:p-8">
+        <button @click="authView=authMode;authError=''" class="back-btn mb-5 text-xs">
+          <i class="fas fa-arrow-left text-[10px]"></i> <span>Back</span>
+        </button>
+        <div class="text-center mb-7">
+          <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 scale-in">
+            <i class="fas fa-envelope text-primary text-2xl"></i>
+          </div>
+          <h2 class="text-xl font-bold mb-1.5">Verify Email</h2>
+          <p class="text-muted text-xs">Code sent to</p>
+          <p class="text-primary-light text-sm font-semibold mt-1" x-text="authEmail"></p>
+        </div>
+        <div class="flex justify-center gap-2.5 mb-6" :class="authError?'shake':''">
+          <template x-for="(d,i) in otpDigits" :key="i">
+            <input type="text" maxlength="1" inputmode="numeric" class="otp-box"
+                   :id="'otp-'+i" :value="otpDigits[i]"
+                   @input="handleOtpInput($event,i)" @keydown="handleOtpKeydown($event,i)" @paste="handleOtpPaste($event)">
+          </template>
+        </div>
+        <p x-show="authError" class="text-red-400 text-xs text-center mb-3 fade-in" x-text="authError"></p>
+        <p x-show="authSuccess" class="text-green-400 text-xs text-center mb-3 fade-in" x-text="authSuccess"></p>
+        <button @click="verifyOtp()" :disabled="authLoading||otpDigits.join('').length<6" class="auth-btn ripple-btn">
+          <i x-show="authLoading" class="fas fa-circle-notch fa-spin text-xs"></i>
+          <span x-text="authLoading?'Verifying...':'Verify & Continue'"></span>
+        </button>
+        <div class="text-center mt-5">
+          <button @click="resendOtp()" :disabled="otpCooldown>0"
+                  class="text-xs font-medium transition-all disabled:text-muted/30 disabled:cursor-not-allowed"
+                  :class="otpCooldown>0?'':'text-primary-light hover:text-primary'">
+            <span x-text="otpCooldown>0?'Resend in '+otpCooldown+'s':'Resend Code'"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SIGN IN / SIGN UP -->
+      <div x-show="authView==='signin'||authView==='signup'" class="p-7 sm:p-8">
+        <div class="flex gap-1.5 bg-surface-2/60 rounded-2xl p-1.5 mb-7">
+          <button @click="authMode='signin';authView='signin';authError='';authSuccess=''" class="auth-tab" :class="authMode==='signin'?'active':''">Sign In</button>
+          <button @click="authMode='signup';authView='signup';authError='';authSuccess=''" class="auth-tab" :class="authMode==='signup'?'active':''">Sign Up</button>
+        </div>
+        <h2 class="text-2xl font-bold mb-1" x-text="authMode==='signin'?'Welcome back':'Create account'"></h2>
+        <p class="text-muted text-sm mb-7" x-text="authMode==='signin'?'Sign in to continue watching':'Join AnimaVerse today'"></p>
+        <button @click="signInWithGoogle()" :disabled="authLoading" class="google-btn mb-6 ripple-btn">
+          <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          <span x-text="authMode==='signin'?'Continue with Google':'Sign up with Google'"></span>
+        </button>
+        <div class="flex items-center gap-3 mb-6">
+          <div class="flex-1 h-px bg-surface-3/60"></div>
+          <span class="text-muted text-[10px] font-medium uppercase tracking-[0.15em]">or</span>
+          <div class="flex-1 h-px bg-surface-3/60"></div>
+        </div>
+        <div x-show="authMode==='signup'" class="mb-4" x-transition>
+          <div class="relative">
+            <input type="text" x-model="authName" placeholder="Full name" class="auth-input">
+            <i class="fas fa-user auth-input-icon"></i>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="relative">
+            <input type="email" x-model="authEmail" placeholder="Email (gmail.com only)" class="auth-input">
+            <i class="fas fa-envelope auth-input-icon"></i>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="relative">
+            <input :type="showPw?'text':'password'" x-model="authPassword" placeholder="Password" class="auth-input" style="padding-right:48px">
+            <i class="fas fa-lock auth-input-icon"></i>
+            <button @click="showPw=!showPw" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors p-1">
+              <i :class="showPw?'fa-eye-slash':'fa-eye'" class="fas text-xs"></i>
+            </button>
+          </div>
+        </div>
+        <p class="text-muted/40 text-[10px] mb-5 flex items-center gap-1.5"><i class="fas fa-shield-halved text-[8px]"></i> Only @gmail.com accepted</p>
+        <div x-show="authError" x-transition class="mb-4 p-3 bg-red-500/5 border border-red-500/10 rounded-xl" :class="authError?'shake':''">
+          <p class="text-red-400 text-xs flex items-center gap-2"><i class="fas fa-circle-exclamation text-[10px]"></i><span x-text="authError"></span></p>
+        </div>
+        <div x-show="authSuccess" x-transition class="mb-4 p-3 bg-green-500/5 border border-green-500/10 rounded-xl">
+          <p class="text-green-400 text-xs flex items-center gap-2"><i class="fas fa-circle-check text-[10px]"></i><span x-text="authSuccess"></span></p>
+        </div>
+        <button @click="handleEmailAuth()" :disabled="authLoading" class="auth-btn ripple-btn">
+          <i x-show="authLoading" class="fas fa-circle-notch fa-spin text-xs"></i>
+          <span x-text="authLoading?'Please wait...':(authMode==='signin'?'Sign In':'Sign Up')"></span>
+        </button>
+      </div>
+
+      <!-- SUCCESS VIEW -->
+      <div x-show="authView==='success'" class="p-8 text-center">
+        <div class="scale-in mb-6">
+          <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+            <i class="fas fa-check text-green-400 text-3xl"></i>
+          </div>
+        </div>
+        <h2 class="text-xl font-bold mb-2">Welcome!</h2>
+        <p class="text-muted text-sm mb-4" x-text="firebaseUser?.displayName||firebaseUser?.email"></p>
+        <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold text-white" :class="userRole==='Admin'?'badge-admin':'badge-user'">
+          <i :class="userRole==='Admin'?'fas fa-crown':'fas fa-user'" class="text-[9px]"></i><span x-text="userRole"></span>
+        </span>
+        <div class="mt-6 flex items-center justify-center gap-1.5 text-muted/40">
+          <div class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+          <p class="text-[11px]">Redirecting...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PROFILE SELECT ==================== -->
+<div x-show="authState==='profileSelect'" x-cloak
+     x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[100] flex items-center justify-center p-5"
+     style="background:radial-gradient(ellipse at 50% 30%,rgba(139,92,246,0.06) 0%,#08090D 70%)">
+  <div class="text-center w-full max-w-lg mx-auto">
+    <div class="inline-flex items-center gap-2.5 mb-3 fade-down">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl">
+        <i class="fas fa-play text-white text-sm ml-0.5"></i>
+      </div>
+      <span class="font-display text-3xl font-bold gradient-text">AnimaVerse</span>
+    </div>
+    <div class="flex items-center justify-center mt-4 mb-8 fade-up">
+      <div class="flex items-center gap-2.5 glass px-4 py-2 rounded-full text-xs">
+        <img x-show="firebaseUser?.photoURL" :src="firebaseUser?.photoURL" class="w-6 h-6 rounded-full ring-2 ring-primary/30" style="opacity:1">
+        <i x-show="!firebaseUser?.photoURL" class="fas fa-user text-muted text-[10px]"></i>
+        <span class="text-white/70 truncate max-w-[160px] font-medium" x-text="firebaseUser?.displayName||firebaseUser?.email"></span>
+        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white badge-user">User</span>
+      </div>
+    </div>
+    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-10" style="animation: fadeUp 0.5s ease 0.2s both">Who's watching?</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6 max-w-md mx-auto px-4">
+      <template x-for="(p,i) in profiles" :key="i">
+        <button @click="selectProfile(p)" class="profile-card flex flex-col items-center gap-3 group" :style="`animation:fadeUp 0.5s ease ${0.3+i*0.08}s both`">
+          <div class="p-avatar w-22 h-22 sm:w-26 sm:h-26 rounded-2xl sm:rounded-[2rem] flex items-center justify-center transition-all shadow-lg overflow-hidden relative" :style="!p.avatar ? `background:linear-gradient(135deg,${p.color1},${p.color2})` : ''">
+            <img x-show="p.avatar" :src="p.avatar" class="w-full h-full object-cover" style="opacity:1">
+            <i x-show="!p.avatar" :class="p.icon" class="text-white text-3xl sm:text-4xl opacity-90"></i>
+            <div x-show="p.locked" class="absolute bottom-3 right-3 bg-black/60 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-sm"><i class="fas fa-lock text-white text-xs"></i></div>
+          </div>
+          <span class="text-muted group-hover:text-white transition-colors text-sm font-medium" x-text="p.name"></span>
+        </button>
+      </template>
+    </div>
+    <div class="flex items-center justify-center gap-3 mt-12" style="animation: fadeUp 0.5s ease 0.6s both">
+      <button @click="showSettings=true;settingsTab='profiles'" class="back-btn text-xs"><i class="fas fa-pen text-[10px]"></i> Manage</button>
+      <button @click="signOut()" class="back-btn text-xs !border-red-900/40 !text-red-400/60 hover:!text-red-400 hover:!border-red-800/40"><i class="fas fa-right-from-bracket text-[10px]"></i> Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div x-show="authState==='app'" x-cloak class="relative main-content-pad">
+
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :class="scrolled?'nav-solid':''">
+    <div class="flex items-center justify-between px-4 md:px-8 lg:px-12 h-16">
+      <div class="flex items-center gap-5 lg:gap-7">
+        <button @click="goHome()" class="flex items-center gap-2.5 shrink-0 group">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg group-hover:shadow-primary/20 transition-shadow">
+            <i class="fas fa-play text-white text-[10px] ml-0.5"></i>
+          </div>
+          <span class="font-display text-xl font-bold gradient-text hidden sm:block">AnimaVerse</span>
+        </button>
+        <!-- Premium Sleek Navigation Tabs -->
+        <div class="hidden lg:flex items-center gap-1 ml-8 p-1.5 rounded-full bg-[#15151a]/60 border border-white/5 backdrop-blur-2xl shadow-2xl">
+          <template x-for="t in navTabs">
+            <button @click="switchTab(t.id)" class="px-6 py-2 rounded-full font-extrabold transition-all duration-300 relative overflow-hidden group"
+                    :class="activeTab===t.id?'text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)]':'text-muted hover:text-white hover:bg-white/5'">
+              <div x-show="activeTab===t.id" x-transition.opacity.duration.400ms class="absolute inset-0 bg-gradient-to-r from-[#C27A4E]/20 to-[#E3A072]/20"></div>
+              <div x-show="activeTab===t.id" x-transition.scale.origin.bottom.duration.400ms class="absolute bottom-0 left-[25%] right-[25%] h-[3px] bg-gradient-to-r from-[#C27A4E] to-[#E3A072] rounded-t-full shadow-[0_-2px_12px_rgba(227,160,114,0.8)]"></div>
+              <span class="relative z-10 tracking-widest uppercase text-[10px]" x-text="t.label"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Premium Search & Categories -->
+        <div class="relative" @click.away="searchOpen=false">
+          <button @click="toggleSearch()" class="px-5 py-2 rounded-full bg-gradient-to-r from-surface-3/80 to-surface-2/80 border border-surface-3 hover:border-primary/50 flex items-center gap-4 text-muted hover:text-white transition-all shadow-[0_4px_20px_rgba(0,0,0,0.5)] group backdrop-blur-md">
+            <span class="text-sm font-bold tracking-wide">Search & Explore</span>
+            <div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/40 group-hover:scale-110 transition-all duration-300 shadow-inner">
+              <i class="fas fa-sparkles text-primary-light text-[11px]"></i>
+            </div>
+          </button>
+          <div x-show="searchOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 -translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+               class="fixed left-4 right-4 top-20 sm:absolute sm:left-auto sm:right-0 sm:top-16 w-auto sm:w-[480px] bg-[#08090D] border border-surface-3/80 rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.9)] overflow-hidden z-50 flex flex-col">
+            
+            <!-- Search Input Area -->
+            <div class="p-4 border-b border-surface-3/40 bg-gradient-to-b from-surface-2/60 to-transparent">
+              <div class="relative flex items-center bg-[#0f0f12] rounded-2xl border border-surface-3 px-4 py-3 focus-within:border-primary/50 transition-colors shadow-inner group/input">
+                <i class="fas fa-search text-muted text-sm mr-3 group-focus-within/input:text-primary transition-colors"></i>
+                <input type="text" x-model="searchQuery" @input.debounce.350ms="performSearch()" x-ref="searchInput" placeholder="Search anime, movies, shows..." class="flex-1 bg-transparent text-white text-sm placeholder-muted/60 outline-none font-medium">
+                <button x-show="searchQuery.length>0" @click="searchQuery='';searchResults=[]" class="w-6 h-6 rounded-full bg-surface-3 flex items-center justify-center text-white hover:bg-red-500/80 transition-all"><i class="fas fa-times text-[10px]"></i></button>
+              </div>
+            </div>
+
+            <!-- Categories Area (Shows when no search query) -->
+            <div x-show="searchQuery.length < 2" class="p-5">
+              <p class="text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-4 flex items-center gap-2"><i class="fas fa-compass text-primary-light"></i> Explore Categories</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <button @click="searchQuery='Action';performSearch()" class="relative overflow-hidden rounded-xl p-3 h-16 flex items-center text-left group border border-white/5 hover:border-primary/40 transition-all shadow-md bg-gradient-to-br from-surface-3 to-[#0f0f12]">
+                  <div class="absolute right-[-5px] bottom-[-10px] opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"><i class="fas fa-fire text-5xl text-primary"></i></div>
+                  <span class="relative z-10 text-sm font-bold text-white group-hover:text-primary-light transition-colors">Action</span>
+                </button>
+                <button @click="searchQuery='Romance';performSearch()" class="relative overflow-hidden rounded-xl p-3 h-16 flex items-center text-left group border border-white/5 hover:border-pink-500/40 transition-all shadow-md bg-gradient-to-br from-surface-3 to-[#0f0f12]">
+                  <div class="absolute right-[-5px] bottom-[-10px] opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"><i class="fas fa-heart text-5xl text-pink-500"></i></div>
+                  <span class="relative z-10 text-sm font-bold text-white group-hover:text-pink-300 transition-colors">Romance</span>
+                </button>
+                <button @click="searchQuery='Sci-Fi';performSearch()" class="relative overflow-hidden rounded-xl p-3 h-16 flex items-center text-left group border border-white/5 hover:border-cyan-500/40 transition-all shadow-md bg-gradient-to-br from-surface-3 to-[#0f0f12]">
+                  <div class="absolute right-[-5px] bottom-[-10px] opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"><i class="fas fa-user-astronaut text-5xl text-cyan-500"></i></div>
+                  <span class="relative z-10 text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">Sci-Fi</span>
+                </button>
+                <button @click="searchQuery='Comedy';performSearch()" class="relative overflow-hidden rounded-xl p-3 h-16 flex items-center text-left group border border-white/5 hover:border-yellow-500/40 transition-all shadow-md bg-gradient-to-br from-surface-3 to-[#0f0f12]">
+                  <div class="absolute right-[-5px] bottom-[-10px] opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"><i class="fas fa-face-laugh-squint text-5xl text-yellow-500"></i></div>
+                  <span class="relative z-10 text-sm font-bold text-white group-hover:text-yellow-300 transition-colors">Comedy</span>
+                </button>
+                <button @click="searchQuery='Horror';performSearch()" class="relative overflow-hidden rounded-xl p-3 h-16 flex items-center text-left group border border-white/5 hover:border-purple-500/40 transition-all shadow-md bg-gradient-to-br from-surface-3 to-[#0f0f12]">
+                  <div class="absolute right-[-5px] bottom-[-10px] opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"><i class="fas fa-ghost text-5xl text-purple-500"></i></div>
+                  <span class="relative z-10 text-sm font-bold text-white group-hover:text-purple-300 transition-colors">Horror</span>
+                </button>
+                <button @click="searchQuery='Fantasy';performSearch()" class="relative overflow-hidden rounded-xl p-3 h-16 flex items-center text-left group border border-white/5 hover:border-emerald-500/40 transition-all shadow-md bg-gradient-to-br from-surface-3 to-[#0f0f12]">
+                  <div class="absolute right-[-5px] bottom-[-10px] opacity-10 group-hover:opacity-30 group-hover:scale-110 transition-all duration-500"><i class="fas fa-dragon text-5xl text-emerald-500"></i></div>
+                  <span class="relative z-10 text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">Fantasy</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Search Results Area -->
+            <div x-show="searchQuery.length>1" class="max-h-[60vh] overflow-y-auto p-2">
+              <div x-show="searchLoading" class="p-8 text-center text-muted text-sm"><i class="fas fa-circle-notch fa-spin mr-2 text-primary"></i>Searching the universe...</div>
+              <div x-show="!searchLoading&&searchResults.length===0&&searchQuery.length>1" class="p-8 text-center text-muted text-sm flex flex-col items-center gap-3">
+                <i class="fas fa-satellite-dish text-3xl opacity-20"></i>
+                <span>No results found</span>
+              </div>
+              <template x-for="item in searchResults.slice(0,6)" :key="item.id">
+                <button @click="openModal(item);searchOpen=false;searchQuery=''" class="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all text-left group">
+                  <img :src="item.poster_path?'https://image.tmdb.org/t/p/w92'+item.poster_path:'https://placehold.co/92x138/1A1D2E/8B8FA3?text=?'" class="w-12 h-16 rounded-xl object-cover shrink-0 bg-surface-2 shadow-lg group-hover:shadow-primary/20 transition-all" loading="lazy" style="opacity:1">
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-bold truncate group-hover:text-primary-light transition-colors text-white" x-text="item.title||item.name"></p>
+                    <div class="flex items-center gap-2.5 mt-1.5">
+                      <span class="text-yellow text-[10px] font-bold flex items-center gap-1 bg-yellow/10 px-1.5 py-0.5 rounded-md"><i class="fas fa-star text-[8px]"></i><span x-text="(item.vote_average||0).toFixed(1)"></span></span>
+                      <span class="w-1 h-1 rounded-full bg-surface-3"></span>
+                      <span class="text-muted text-[10px] font-semibold" x-text="(item.release_date||item.first_air_date||'').substring(0,4)"></span>
+                      <span x-show="item.media_type" class="text-[9px] uppercase font-bold text-primary border border-primary/30 px-1.5 rounded" x-text="item.media_type"></span>
+                    </div>
+                  </div>
+                  <i class="fas fa-chevron-right text-muted opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all text-xs"></i>
+                </button>
+              </template>
+            </div>
+          </div>
+        </div>
+        <!-- Settings -->
+        <button @click="showSettings=true" class="w-10 h-10 rounded-xl flex items-center justify-center text-muted hover:text-white hover:bg-white/5 transition-all"><i class="fas fa-gear text-sm"></i></button>
+        <!-- Profile -->
+        <div class="relative" @click.away="profileDD=false">
+          <button @click="profileDD=!profileDD" class="flex items-center gap-3 px-2 py-1 rounded-full hover:bg-white/5 transition-all">
+            <div class="w-9 h-9 rounded-full overflow-hidden ring-1 ring-primary/40 shadow-lg flex items-center justify-center bg-surface-2" :style="!currentProfile?.avatar ? `background:linear-gradient(135deg,${currentProfile?.color1||'#D4A373'},${currentProfile?.color2||'#FAEDCD'})` : ''">
+               <img x-show="currentProfile?.avatar" :src="currentProfile?.avatar" class="w-full h-full object-cover">
+               <img x-show="!currentProfile?.avatar && firebaseUser?.photoURL" :src="firebaseUser?.photoURL" class="w-full h-full object-cover">
+               <i x-show="!currentProfile?.avatar && !firebaseUser?.photoURL" :class="currentProfile?.icon||'fas fa-user'" class="text-white text-[11px]"></i>
+            </div>
+            <div class="hidden md:flex flex-col items-start text-left">
+              <span class="text-sm font-bold text-white flex items-center gap-1">
+                <span x-text="currentProfile?.name||'User'"></span>
+              </span>
+              <span class="text-[10px] text-muted font-medium" x-text="firebaseUser?.displayName||firebaseUser?.email?.split('@')[0]||'Guest'"></span>
+            </div>
+            <i class="fas fa-chevron-down text-muted text-[10px] ml-1 hidden md:block"></i>
+          </button>
+          <div x-show="profileDD" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+               class="absolute right-0 top-12 w-56 glass rounded-2xl shadow-2xl shadow-black/50 py-2 z-50">
+            <div class="px-4 py-3 border-b border-surface-3/40">
+              <p class="text-sm font-semibold" x-text="currentProfile?.name"></p>
+              <p class="text-[11px] text-muted mt-0.5 truncate" x-text="firebaseUser?.email"></p>
+              <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white badge-user">
+                <i class="fas fa-user text-[7px]"></i><span>User</span>
+              </span>
+            </div>
+            <div class="py-1">
+              <button @click="showSettings=true;settingsTab='profiles';profileDD=false" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted hover:text-white hover:bg-white/3 transition-all text-left"><i class="fas fa-users w-4 text-[10px]"></i> Switch Profile</button>
+              <button @click="showSettings=true;settingsTab='settings';profileDD=false" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted hover:text-white hover:bg-white/3 transition-all text-left"><i class="fas fa-gear w-4 text-[10px]"></i> Settings</button>
+            </div>
+            <div class="border-t border-surface-3/40 pt-1">
+              <button @click="signOut()" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-muted hover:text-red-400 hover:bg-red-500/3 transition-all text-left"><i class="fas fa-right-from-bracket w-4 text-[10px]"></i> Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Bottom Nav -->
+  <div class="md:hidden bottom-nav">
+    <template x-for="t in navTabs">
+      <button @click="switchTab(t.id)" :class="activeTab===t.id?'active':''"><i :class="'fas '+t.icon"></i><span x-text="t.label"></span></button>
+    </template>
+  </div>
+
+  <!-- ===== MY LIST ===== -->
+  <div x-show="activeTab==='mylist'&&!isPlayerOpen"
+       x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+       class="pt-24 px-4 md:px-8 lg:px-12 min-h-screen">
+    <h2 class="text-xl sm:text-2xl font-bold mb-8 flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"><i class="fas fa-bookmark text-primary text-sm"></i></div>
+      My List
+    </h2>
+    <div x-show="myList.length===0" class="text-center py-24 text-muted">
+      <div class="w-20 h-20 rounded-full bg-surface-2/40 flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-bookmark text-3xl opacity-20"></i>
+      </div>
+      <p class="text-base font-semibold mb-1">Your list is empty</p>
+      <p class="text-sm opacity-60">Add movies and shows to watch later</p>
+    </div>
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 sm:gap-4">
+      <template x-for="item in myList" :key="item.id">
+        <div @click="openModal(item)" class="movie-card bg-surface-2">
+          <img :src="getItemPoster(item)" class="w-full aspect-[2/3] object-cover" loading="lazy" @load="$el.classList.add('loaded')">
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div x-show="(activeTab==='home'||activeTab==='movies'||activeTab==='tvshows')&&!isPlayerOpen"
+       x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       class="relative">
+    <!-- Skeleton hero -->
+    <div x-show="loading&&!heroMovie" class="h-[65vh] sm:h-[75vh] md:h-[85vh] w-full skel"></div>
+    <!-- Hero -->
+    <div x-show="heroMovie" class="relative h-[65vh] sm:h-[75vh] md:h-[85vh] w-full overflow-hidden">
+      <img :src="heroMovie?'https://image.tmdb.org/t/p/original'+heroMovie.backdrop_path:''" class="w-full h-full object-cover" style="opacity:1" loading="eager">
+      <div class="hero-grad absolute inset-0"></div>
+      <div class="absolute bottom-10 sm:bottom-[12%] md:bottom-[15%] left-4 sm:left-6 md:left-8 lg:left-12 z-10 max-w-sm sm:max-w-md md:max-w-lg">
+        <div class="flex items-center gap-2 mb-4" style="animation:fadeUp 0.6s ease 0.2s both">
+          <span class="tag bg-surface-3/80 text-primary-light border border-primary/20 rounded-full px-3 py-1 text-[10px] uppercase font-bold tracking-wider">AnimaVerse</span>
+          <span class="tag bg-surface-3/80 text-white border border-surface-3/50 rounded-full px-3 py-1 text-[10px] uppercase font-bold tracking-wider" x-text="heroMovie?.media_type==='tv'?'Series':'Movie'"></span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-[1.1] mb-5" style="animation:fadeUp 0.6s ease 0.3s both" x-text="heroMovie?.title||heroMovie?.name"></h1>
+        <div class="flex items-center gap-3 mb-5 flex-wrap" style="animation:fadeUp 0.6s ease 0.4s both">
+          <span class="flex items-center gap-1.5 text-yellow font-bold text-sm"><i class="fas fa-star text-xs text-[#E3A072]"></i><span x-text="(heroMovie?.vote_average||0).toFixed(1)"></span></span>
+          <span class="w-1 h-1 rounded-full bg-muted/40"></span>
+          <span class="text-muted text-sm" x-text="(heroMovie?.release_date||heroMovie?.first_air_date||'').substring(0,4)"></span>
+          <span class="tag bg-white/10 text-white/50 text-[9px]">HD</span>
+        </div>
+        <p class="text-sm text-white/45 line-clamp-2 sm:line-clamp-3 mb-8 max-w-sm leading-relaxed" style="animation:fadeUp 0.6s ease 0.5s both" x-text="heroMovie?.overview"></p>
+        <div class="flex items-center gap-5" style="animation:fadeUp 0.6s ease 0.6s both">
+          <button @click="playContent(heroMovie)" class="px-14 py-4 bg-gradient-to-r from-primary to-accent text-white font-black rounded-full hover:scale-105 active:scale-95 flex items-center gap-4 text-lg sm:text-xl transition-all duration-300 shadow-[0_0_40px_rgba(227,160,114,0.6)] hover:shadow-[0_0_60px_rgba(227,160,114,0.8)] ripple-btn group">
+            <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <i class="fas fa-play text-white text-lg ml-1"></i>
+            </div>
+            <span>Play Now</span>
+          </button>
+          <button @click="toggleMyList(heroMovie)" class="px-8 py-4 bg-[#0f0f12]/80 text-white border border-[#C27A4E]/60 font-bold rounded-full hover:bg-[#15151a] active:scale-95 flex items-center gap-3 text-base sm:text-lg transition-all shadow-xl ripple-btn" :class="isInMyList(heroMovie?.id)?'text-[#E3A072] border-[#E3A072]':'text-white'">
+            <i :class="isInMyList(heroMovie?.id)?'fas fa-check text-[#E3A072]':'fas fa-plus'" class="text-[14px]"></i> My List
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Rows -->
+    <div class="relative z-10 -mt-20 sm:-mt-28 md:-mt-36 pb-32 space-y-16 sm:space-y-24 md:space-y-32">
+      <div x-show="loading&&contentRows.length===0" class="px-4 md:px-8 lg:px-12 space-y-12">
+        <template x-for="i in 3" :key="'sk'+i">
+           <div><div class="skel h-6 w-40 mb-6"></div><div class="flex gap-3 overflow-hidden"><template x-for="j in 6" :key="'skc'+j"><div class="skel shrink-0 w-[120px] sm:w-[150px] md:w-[170px] aspect-[2/3]"></div></template></div></div>
+        </template>
+      </div>
+      <template x-for="(row,ri) in contentRows" :key="row.title">
+        <div x-show="row.items.length>0" class="px-4 md:px-8 lg:px-12">
+          <h2 class="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 flex items-center gap-3">
+            <span x-show="!row.isVidBinge" class="w-1.5 h-6 rounded-full bg-[#C27A4E] shadow-[0_0_10px_rgba(194,122,78,0.5)]"></span>
+            <span x-show="row.isVidBinge" class="text-pink-400"><i class="fas fa-fire"></i></span>
+            <span x-text="row.title"></span>
+            <span x-show="row.isVidBinge" class="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-500/20 border border-pink-500/30 rounded-lg text-[9px] font-bold text-pink-300">vb-pink-300</span>
+          </h2>
+          <div class="relative row-wrap group/row">
+            <button @click="scrollRow($event,-1)" class="row-arrow absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#08090D] to-transparent z-20 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-full glass flex items-center justify-center shadow-xl"><i class="fas fa-chevron-left text-sm text-white"></i></div>
+            </button>
+            <div class="row-scroll flex gap-2.5 sm:gap-3 overflow-x-auto">
+              <template x-if="row.isTopList">
+                <template x-for="(item, idx) in row.items" :key="(item.id||item.tmdb_id)+'-'+ri+'-top'">
+                  <div @click="openModal(item)" class="top-rank-card shrink-0 hover-glow">
+                    <span class="top-rank-number" x-text="idx+1"></span>
+                    <div class="top-rank-poster">
+                      <img :src="getItemPoster(item)" loading="lazy" @load="$el.classList.add('loaded')">
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <i class="fas fa-play text-white text-3xl drop-shadow-lg"></i>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </template>
+              <template x-if="!row.isTopList">
+                <template x-for="item in row.items" :key="(item.id||item.tmdb_id)+'-'+ri+'-norm'">
+                  <div @click="openModal(item)" class="movie-card shrink-0 bg-transparent hover-glow overflow-hidden border border-white/5 shadow-lg transition-transform hover:scale-[1.02] hover:border-primary/30"
+                       :class="row.title==='Continue Watching'?'w-[200px] sm:w-[240px] md:w-[280px] aspect-video rounded-[12px]':'w-[120px] sm:w-[140px] md:w-[160px] aspect-[2/3] rounded-[16px]'">
+                    <img :src="row.title==='Continue Watching' ? (item.backdrop_path?'https://image.tmdb.org/t/p/w780'+item.backdrop_path:getItemPoster(item)) : getItemPoster(item)" class="w-full h-full object-cover bg-surface-2" :class="row.title==='Continue Watching'?'rounded-[12px]':'rounded-[16px]'" loading="lazy" @load="$el.classList.add('loaded')">
+                    <div x-show="item._vbAvailable" class="vb-available">vb-available</div>
+                    <div class="mc-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3">
+                      <div class="mc-info">
+                        <div class="flex justify-center mb-2.5">
+                          <div class="mc-play w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-xl"><i class="fas fa-play text-black text-sm ml-0.5"></i></div>
+                        </div>
+                        <p class="text-xs font-semibold truncate" x-text="item.title||item.name"></p>
+                        <div class="flex items-center gap-1.5 mt-1">
+                          <span class="text-yellow text-[10px] font-bold"><i class="fas fa-star text-[8px]"></i> <span x-text="(item.vote_average||0).toFixed(1)"></span></span>
+                          <span class="text-white/35 text-[10px]" x-text="getItemYear(item)"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </template>
+            </div>
+            <button @click="scrollRow($event,1)" class="row-arrow absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#08090D] to-transparent z-20 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-full glass flex items-center justify-center shadow-xl"><i class="fas fa-chevron-right text-sm text-white"></i></div>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- ===== PLAYER MODAL ===== -->
+<div x-show="isPlayerOpen" @click.self="closePlayer()"
+     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[90] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="bg-surface w-full max-w-7xl rounded-3xl overflow-hidden shadow-2xl shadow-black/50 modal-up ring-1 ring-surface-3/40 flex flex-col md:flex-row relative" @click.stop style="max-height: 95vh;">
+    <button @click="closePlayer()" class="absolute top-4 right-4 w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-all active:scale-90 z-10 shadow-lg">
+      <i class="fas fa-xmark text-white text-sm"></i>
+    </button>
+    
+    <!-- Left: Player & Controls -->
+    <div class="flex-1 flex flex-col min-w-0 bg-gray-900 relative">
+      <div class="w-full aspect-video min-h-[50vh] md:min-h-[70vh] bg-black relative shadow-lg group">
+        <iframe :src="playerUrl" class="absolute inset-0 w-full h-full" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="no-referrer-when-downgrade" loading="lazy"></iframe>
+
+        <!-- Ad Overlay script (Simulated for AnimaVerse) -->
+        <div id="adVerificationOverlay" class="absolute inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-gray-900 border border-purple-500/30 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+                <div class="w-16 h-16 bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/50">
+                    <i class="fas fa-lock text-purple-400 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Unlock Player</h3>
+                <p class="text-gray-400 text-sm mb-6">Complete a quick sponsor visit to unlock the player.</p>
+                <button onclick="document.getElementById('adVerificationOverlay').style.display='none'" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fas fa-unlock"></i> Unlock Now
+                </button>
+            </div>
+        </div>
+      </div>
+      <!-- Server Selection Below Player -->
+      <div class="p-4 bg-gray-900/80 border-t border-gray-800 backdrop-blur-md">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                  <i class="fas fa-server text-purple-400"></i>
+                  <span class="text-gray-300 font-medium whitespace-nowrap text-sm">Server:</span>
+                  <select :value="playerProvider" @change="switchPlayerProvider($event.target.value)" class="w-full sm:w-auto bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 outline-none font-semibold">
+                      <optgroup label="Web Players">
+                          <option value="vidbinge">VidBinge (Ad-Free & Best)</option>
+                      <option value="indra">Indra (Ad-Free)</option>
+                      <option value="vembed">Vembed (Ad-Free)</option>
+                      <option value="mafia">Mafia (Ad-Free)</option>
+                      <option value="moviesapi">MoviesAPI (Ad-Free)</option>
+                      <option value="smashy">Smashy Stream</option>
+                      <option value="vidlink">VidLink (Ad-Free)</option>
+                      <option value="vidsrc">VidSrc (Ads)</option>
+                      <option value="vixsrc">VixSrc (Ads)</option>
+                      <option value="superembed">SuperEmbed (Ads)</option>
+                      <option value="screenscape">ScreenScape</option>
+                      </optgroup>
+                  </select>
+              </div>
+              <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                  <button @click="toggleMyList(playingContent)" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-lg transition border border-gray-700 flex items-center gap-2 text-sm">
+                      <i :class="isInMyList(playingContent?.id)?'fas fa-check text-purple-400':'fas fa-plus text-gray-400'"></i> <span class="hidden sm:inline" x-text="isInMyList(playingContent?.id)?'Added':'My List'"></span>
+                  </button>
+                  <button class="w-10 h-10 rounded-lg bg-gray-800 hover:bg-purple-600 text-gray-300 hover:text-white transition flex items-center justify-center border border-gray-700" title="Report Issue">
+                      <i class="fas fa-flag"></i>
+                  </button>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- Right: Episodes (TV Only) -->
+    <div x-show="playingContent&&isTV(playingContent)" class="w-full md:w-[300px] lg:w-[340px] shrink-0 border-l border-gray-800 bg-gray-900 flex flex-col" style="max-height: 90vh;">
+      <div class="p-5 pb-3 shrink-0 border-b border-gray-800">
+        <h3 class="text-lg font-bold mb-3 text-white">Episodes</h3>
+        <select x-model="selectedSeason" @change="fetchEpisodes(playingContent.id,selectedSeason)" class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-lg outline-none font-semibold p-2">
+          <template x-for="s in totalSeasons" :key="s"><option :value="s" x-text="'Season '+s"></option></template>
+        </select>
+      </div>
+      <div class="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+        <template x-for="ep in episodes" :key="ep.episode_number">
+          <button @click="playEpisode(ep.episode_number)" class="w-full flex items-center gap-3 p-2 text-left rounded-xl border transition-all hover:bg-gray-800 group"
+                  :class="selectedEpisode===ep.episode_number?'bg-purple-900/30 border-purple-500/50':'border-transparent'">
+            <div class="shrink-0 w-24 rounded-lg overflow-hidden bg-gray-800 relative">
+              <img :src="ep.still_path?'https://image.tmdb.org/t/p/w300'+ep.still_path:'https://placehold.co/300x170/1A1D2E/8B8FA3?text=E'+ep.episode_number" class="w-full aspect-video object-cover" loading="lazy" @load="$el.classList.add('loaded')">
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><i class="fas fa-play text-white text-sm"></i></div>
+              <div x-show="selectedEpisode===ep.episode_number" class="absolute inset-0 bg-purple-600/40 flex items-center justify-center"><i class="fas fa-play text-white text-sm"></i></div>
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-center">
+              <h4 class="font-semibold text-sm truncate" :class="selectedEpisode===ep.episode_number?'text-purple-400':'text-gray-200'" x-text="'Episode '+ep.episode_number"></h4>
+              <span class="text-gray-400 text-xs mt-0.5 truncate" x-text="ep.name"></span>
+            </div>
+          </button>
+        </template>
+        <div x-show="episodes.length===0" class="text-center py-8 text-gray-500 text-sm">No episodes found</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== DETAIL MODAL ==================== -->
+<div x-show="showModal&&selectedMovie" @click.self="closeModal()"
+     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md flex items-end sm:items-start justify-center overflow-y-auto sm:py-10 px-0 sm:px-4">
+  <div class="bg-surface w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50 modal-up ring-1 ring-surface-3/40 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto" @click.stop>
+    <div class="relative h-[220px] sm:h-[320px]">
+      <img :src="selectedMovie?.backdrop_path?'https://image.tmdb.org/t/p/w1280'+selectedMovie.backdrop_path:(selectedMovie?.poster_path?'https://image.tmdb.org/t/p/w780'+selectedMovie.poster_path:'')" class="w-full h-full object-cover" style="opacity:1">
+      <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/20 to-black/10"></div>
+      <button @click="closeModal()" class="absolute top-4 right-4 w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/10 transition-all active:scale-90">
+        <i class="fas fa-xmark text-white text-sm"></i>
+      </button>
+      <div class="absolute bottom-5 sm:bottom-6 left-5 sm:left-6 right-5 sm:right-6">
+        <h2 class="text-2xl sm:text-3xl font-extrabold mb-4 leading-tight" x-text="selectedMovie?.title||selectedMovie?.name"></h2>
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <button @click="playContent(selectedMovie)" class="px-6 py-2.5 bg-white text-black font-bold rounded-xl hover:bg-white/90 active:scale-95 flex items-center gap-2 text-sm transition-all shadow-xl ripple-btn">
+            <i class="fas fa-play text-[10px]"></i> Play
+          </button>
+          <button @click="toggleMyList(selectedMovie)" class="w-10 h-10 rounded-full flex items-center justify-center transition-all border-2 active:scale-90"
+                  :class="isInMyList(selectedMovie?.id)?'bg-primary/15 border-primary/40 text-primary-light':'bg-white/10 border-white/15 text-white hover:bg-white/15'">
+            <i :class="isInMyList(selectedMovie?.id)?'fas fa-check':'fas fa-plus'" class="text-sm"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="p-5 sm:p-7">
+      <div class="grid sm:grid-cols-3 gap-5">
+        <div class="sm:col-span-2">
+          <div class="flex items-center gap-3 mb-4 flex-wrap">
+            <span class="text-yellow font-bold text-sm flex items-center gap-1.5"><i class="fas fa-star text-xs"></i><span x-text="(selectedMovie?.vote_average||0).toFixed(1)"></span></span>
+            <span class="text-muted text-sm" x-text="(selectedMovie?.release_date||selectedMovie?.first_air_date||'').substring(0,4)"></span>
+            <span class="tag bg-surface-2 text-muted border border-surface-3/50" x-text="modalDetails?.runtime?modalDetails.runtime+' min':(modalDetails?.number_of_seasons?modalDetails.number_of_seasons+' Season(s)':'')"></span>
+          </div>
+          <p class="text-sm leading-relaxed text-white/55" x-text="selectedMovie?.overview"></p>
+        </div>
+        <div class="text-sm space-y-4 bg-surface-2/30 rounded-2xl p-4 border border-surface-3/20">
+          <div><p class="text-muted text-[10px] uppercase tracking-wider font-semibold mb-1">Genres</p><p class="text-white/70 font-medium text-xs" x-text="modalDetails?.genres?.map(g=>g.name).join(', ')||'—'"></p></div>
+          <div x-show="modalDetails?.tagline"><p class="text-muted text-[10px] uppercase tracking-wider font-semibold mb-1">Tagline</p><p class="italic text-primary-light text-xs" x-text="modalDetails?.tagline"></p></div>
+        </div>
+      </div>
+      <div x-show="isTV(selectedMovie)" class="mt-7">
+        <div class="flex items-center gap-3 mb-4 flex-wrap">
+          <h3 class="text-base font-bold">Episodes</h3>
+          <select x-model="modalSeason" @change="fetchModalEpisodes()" class="bg-surface-2 border border-surface-3 text-white px-3 py-1.5 rounded-xl text-xs outline-none focus:border-primary transition-all">
+            <template x-for="s in (modalDetails?.number_of_seasons||1)" :key="s"><option :value="s" x-text="'Season '+s"></option></template>
+          </select>
+        </div>
+        <div class="space-y-1.5 max-h-[300px] overflow-y-auto rounded-2xl">
+          <template x-for="ep in modalEpisodes" :key="ep.episode_number">
+            <button @click="playTVFromModal(selectedMovie,modalSeason,ep.episode_number)" class="ep-row w-full flex gap-3 p-3 text-left group">
+              <div class="shrink-0 w-7 flex items-center justify-center text-sm font-bold text-muted group-hover:text-primary transition-colors" x-text="ep.episode_number"></div>
+              <div class="shrink-0 w-24 sm:w-32 rounded-xl overflow-hidden bg-surface-2 relative">
+                <img :src="ep.still_path?'https://image.tmdb.org/t/p/w300'+ep.still_path:'https://placehold.co/300x170/1A1D2E/8B8FA3?text=E'+ep.episode_number" class="w-full aspect-video object-cover" loading="lazy" @load="$el.classList.add('loaded')">
+                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"><i class="fas fa-play text-white text-sm opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-100 scale-50"></i></div>
+              </div>
+              <div class="flex-1 min-w-0 py-0.5">
+                <h4 class="font-semibold text-sm truncate" x-text="ep.name"></h4>
+                <p class="text-muted text-xs mt-1 line-clamp-2" x-text="ep.overview"></p>
+              </div>
+            </button>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SETTINGS MODAL ==================== -->
+<div x-show="showSettings" @click.self="showSettings=false"
+     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[80] bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center px-0 sm:px-4">
+  <div class="bg-surface w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl shadow-black/50 modal-up ring-1 ring-surface-3/40 max-h-[88vh] flex flex-col" @click.stop>
+    <div class="flex items-center justify-between px-6 py-5 border-b border-surface-3/40 shrink-0">
+      <h2 class="text-base font-bold flex items-center gap-2.5">
+        <i class="fas fa-gear text-primary text-sm"></i>
+        <span x-text="settingsTab==='settings'?'Settings':'Profiles'"></span>
+      </h2>
+      <button @click="showSettings=false" class="w-9 h-9 rounded-xl bg-surface-2 flex items-center justify-center hover:bg-surface-3 transition-all active:scale-90">
+        <i class="fas fa-xmark text-sm"></i>
+      </button>
+    </div>
+    <div class="flex border-b border-surface-3/40 shrink-0">
+      <button @click="settingsTab='settings'" class="flex-1 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2" :class="settingsTab==='settings'?'text-white border-b-2 border-primary':'text-muted hover:text-white'"><i class="fas fa-sliders text-[10px]"></i>Settings</button>
+      <button @click="settingsTab='profiles'" class="flex-1 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2" :class="settingsTab==='profiles'?'text-white border-b-2 border-primary':'text-muted hover:text-white'"><i class="fas fa-users text-[10px]"></i>Profiles</button>
+    </div>
+    <div class="p-6 overflow-y-auto">
+      <!-- Settings Tab -->
+      <div x-show="settingsTab==='settings'" class="space-y-6">
+        <div>
+          <p class="text-[10px] font-semibold text-muted uppercase tracking-[0.15em] mb-3">Account</p>
+          <div class="bg-surface-2/30 rounded-2xl p-4 border border-surface-3/20 space-y-3 text-sm">
+            <div class="flex justify-between"><span class="text-muted text-xs">Email</span><span class="text-white/70 truncate ml-3 text-xs" x-text="firebaseUser?.email"></span></div>
+            <div class="flex justify-between items-center"><span class="text-muted text-xs">Role</span>
+              <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white badge-user"><i class="fas fa-user text-[7px] mr-0.5"></i>User</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="text-[10px] font-semibold text-muted uppercase tracking-[0.15em] mb-3">Player Source</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-2.5">
+            <button @click="playerProvider='vidbinge';saveSettings()" class="provider-card" :class="playerProvider==='vidbinge'?'active-vidbinge':''">
+              <div class="provider-check bg-[#FAEDCD] text-black"><i class="fas fa-check"></i></div>
+              <i class="fas fa-fire text-xl" :class="playerProvider==='vidbinge'?'text-[#FAEDCD]':''"></i>
+              <span>VidBinge</span><span class="provider-badge bg-[#FAEDCD]/10 text-[#FAEDCD]">Premium</span>
+            </button>
+            <button @click="playerProvider='indra';saveSettings()" class="provider-card" :class="playerProvider==='indra'?'active-indra':''">
+              <div class="provider-check bg-[#D4A373] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-bolt text-xl" :class="playerProvider==='indra'?'text-[#D4A373]':''"></i>
+              <span>Indra</span><span class="provider-badge bg-[#D4A373]/10 text-[#D4A373]">Fast</span>
+            </button>
+            <button @click="playerProvider='vembed';saveSettings()" class="provider-card" :class="playerProvider==='vembed'?'active-vembed':''">
+              <div class="provider-check bg-[#E9C46A] text-black"><i class="fas fa-check"></i></div>
+              <i class="fas fa-cloud text-xl" :class="playerProvider==='vembed'?'text-[#E9C46A]':''"></i>
+              <span>Vembed</span><span class="provider-badge bg-[#E9C46A]/10 text-[#E9C46A]">Stable</span>
+            </button>
+            <button @click="playerProvider='mafia';saveSettings()" class="provider-card" :class="playerProvider==='mafia'?'active-mafia':''">
+              <div class="provider-check bg-[#A68A64] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-mask text-xl" :class="playerProvider==='mafia'?'text-[#A68A64]':''"></i>
+              <span>Mafia</span><span class="provider-badge bg-[#A68A64]/10 text-[#A68A64]">Smooth</span>
+            </button>
+            <button @click="playerProvider='moviesapi';saveSettings()" class="provider-card" :class="playerProvider==='moviesapi'?'active-moviesapi':''">
+              <div class="provider-check bg-[#ef4444] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-film text-xl" :class="playerProvider==='moviesapi'?'text-[#ef4444]':''"></i>
+              <span>MoviesAPI</span><span class="provider-badge bg-[#ef4444]/10 text-[#ef4444]">Smooth</span>
+            </button>
+            <button @click="playerProvider='smashy';saveSettings()" class="provider-card" :class="playerProvider==='smashy'?'active-vidlink':''">
+              <div class="provider-check bg-[#8b5cf6] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-play text-xl" :class="playerProvider==='smashy'?'text-[#8b5cf6]':''"></i>
+              <span>Smashy</span><span class="provider-badge bg-[#8b5cf6]/10 text-[#8b5cf6]">Fast</span>
+            </button>
+            <button @click="playerProvider='vidlink';saveSettings()" class="provider-card" :class="playerProvider==='vidlink'?'active-vidlink':''">
+              <div class="provider-check bg-[#3b82f6] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-link text-xl" :class="playerProvider==='vidlink'?'text-[#3b82f6]':''"></i>
+              <span>VidLink</span><span class="provider-badge bg-[#3b82f6]/10 text-[#3b82f6]">New</span>
+            </button>
+            <button @click="playerProvider='vidsrc';saveSettings()" class="provider-card" :class="playerProvider==='vidsrc'?'active-vidsrc':''">
+              <div class="provider-check bg-[#10b981] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-play-circle text-xl" :class="playerProvider==='vidsrc'?'text-[#10b981]':''"></i>
+              <span>VidSrc</span><span class="provider-badge bg-[#10b981]/10 text-[#10b981]">New</span>
+            </button>
+            <button @click="playerProvider='vixsrc';saveSettings()" class="provider-card" :class="playerProvider==='vixsrc'?'active-vixsrc':''">
+              <div class="provider-check bg-[#f59e0b] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-video text-xl" :class="playerProvider==='vixsrc'?'text-[#f59e0b]':''"></i>
+              <span>VixSrc</span><span class="provider-badge bg-[#f59e0b]/10 text-[#f59e0b]">New</span>
+            </button>
+            <button @click="playerProvider='superembed';saveSettings()" class="provider-card" :class="playerProvider==='superembed'?'active-superembed':''">
+              <div class="provider-check bg-[#ec4899] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-compact-disc text-xl" :class="playerProvider==='superembed'?'text-[#ec4899]':''"></i>
+              <span>SuperEmbed</span><span class="provider-badge bg-[#ec4899]/10 text-[#ec4899]">New</span>
+            </button>
+            <button @click="playerProvider='screenscape';saveSettings()" class="provider-card" :class="playerProvider==='screenscape'?'active-screenscape':''">
+              <div class="provider-check bg-[#0ea5e9] text-white"><i class="fas fa-check"></i></div>
+              <i class="fas fa-desktop text-xl" :class="playerProvider==='screenscape'?'text-[#0ea5e9]':''"></i>
+              <span>ScreenScape</span><span class="provider-badge bg-[#0ea5e9]/10 text-[#0ea5e9]">New</span>
+            </button>
+          </div>
+          
+          <div class="mt-3 p-3 rounded-xl border text-xs leading-relaxed transition-all duration-300"
+               :class="{'bg-[#FAEDCD]/5 border-[#FAEDCD]/10 text-[#FAEDCD]/70':playerProvider==='vidbinge','bg-[#D4A373]/5 border-[#D4A373]/10 text-[#D4A373]/70':playerProvider==='indra','bg-[#E9C46A]/5 border-[#E9C46A]/10 text-[#E9C46A]/70':playerProvider==='vembed','bg-[#A68A64]/5 border-[#A68A64]/10 text-[#A68A64]/70':playerProvider==='mafia','bg-[#ef4444]/5 border-[#ef4444]/10 text-[#ef4444]/70':playerProvider==='moviesapi','bg-[#8b5cf6]/5 border-[#8b5cf6]/10 text-[#8b5cf6]/70':playerProvider==='smashy','bg-[#0ea5e9]/5 border-[#0ea5e9]/10 text-[#0ea5e9]/70':playerProvider==='screenscape'}">
+            <template x-if="playerProvider==='vidbinge'"><span><i class="fas fa-fire mr-1"></i>Premium source with subtitles, multiple servers & best quality.</span></template>
+            <template x-if="playerProvider==='indra'"><span><i class="fas fa-bolt mr-1"></i>Fast loading with multi-quality support.</span></template>
+            <template x-if="playerProvider==='vembed'"><span><i class="fas fa-cloud mr-1"></i>Reliable fallback with consistent quality.</span></template>
+            <template x-if="playerProvider==='mafia'"><span><i class="fas fa-video mr-1"></i>Stream Mafia: Good quality but requires interaction.</span></template>
+            <template x-if="playerProvider==='moviesapi'"><span><i class="fas fa-film mr-1"></i>MoviesAPI: Smooth playback, fast servers.</span></template>
+            <template x-if="playerProvider==='smashy'"><span><i class="fas fa-play mr-1"></i>Smashy Stream: Fast loading multi-server.</span></template>
+            <template x-if="playerProvider==='screenscape'"><span><i class="fas fa-desktop mr-1"></i>ScreenScape: Multi-language support and fast.</span></template>
+          </div>
+        </div>
+        <div>
+          <p class="text-[10px] font-semibold text-muted uppercase tracking-[0.15em] mb-3">Data</p>
+          <div class="space-y-2">
+            <button @click="clearContinueWatching()" class="w-full py-3 bg-surface-2/40 hover:bg-surface-3/40 rounded-xl text-xs text-muted hover:text-white transition-all flex items-center justify-center gap-2 font-medium active:scale-97"><i class="fas fa-clock-rotate-left text-[10px]"></i>Clear Watch History</button>
+            <button @click="clearMyList()" class="w-full py-3 bg-surface-2/40 hover:bg-surface-3/40 rounded-xl text-xs text-muted hover:text-white transition-all flex items-center justify-center gap-2 font-medium active:scale-97"><i class="fas fa-bookmark text-[10px]"></i>Clear My List</button>
+          </div>
+        </div>
+        <p class="text-center text-muted/25 text-[10px] pt-3 border-t border-surface-3/20">AnimaVerse v4.0</p>
+      </div>
+      <!-- Profiles Tab -->
+      <div x-show="settingsTab==='profiles'" class="space-y-3">
+        <template x-for="(p,i) in profiles" :key="i">
+          <div class="flex flex-col gap-3 p-4 rounded-2xl bg-surface-2/30 border border-surface-3/20 transition-all hover:bg-surface-2/50">
+            <div class="flex items-center gap-4">
+              <div class="relative group cursor-pointer shrink-0" @click="document.getElementById('file-'+i).click()">
+                <img x-show="p.avatar" :src="p.avatar" class="w-14 h-14 rounded-full object-cover shadow-lg ring-2 ring-primary/40">
+                <div x-show="!p.avatar" class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" :style="`background:linear-gradient(135deg,${p.color1},${p.color2})`"><i :class="p.icon" class="text-white text-xl"></i></div>
+                <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fas fa-camera text-white text-xs"></i>
+                </div>
+                <input type="file" :id="'file-'+i" accept="image/*" class="hidden" @change="uploadAvatar($event, p)">
+              </div>
+              <div class="flex-1 min-w-0">
+                <input type="text" x-model="p.name" @change="saveProfiles()" class="w-full bg-transparent border-b-2 border-surface-3/40 focus:border-primary text-white py-1 text-base transition-all outline-none font-bold">
+              </div>
+            </div>
+            <div class="flex items-center justify-between mt-1 pt-3 border-t border-surface-3/20">
+              <button @click="p.locked = !p.locked; saveProfiles()" class="text-[11px] font-semibold flex items-center gap-1.5 transition-colors" :class="p.locked?'text-red-400 hover:text-red-300':'text-muted hover:text-white'">
+                <i class="fas" :class="p.locked?'fa-lock':'fa-unlock'"></i> <span x-text="p.locked?'Profile Locked':'Lock Profile'"></span>
+              </button>
+              <button @click="selectProfile(p);showSettings=false" class="px-5 py-2 text-xs rounded-xl transition-all font-bold shrink-0 active:scale-95 shadow-md"
+                      :class="currentProfile?.name===p.name?'bg-primary text-black':'bg-surface-3/60 hover:bg-surface-3 text-white'"
+                      x-text="currentProfile?.name===p.name?'Active':'Switch'"></button>
+            </div>
+          </div>
+        </template>
+        <button @click="goToProfileSelect()" class="w-full mt-5 py-3 bg-primary/6 hover:bg-primary/12 text-primary-light rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 active:scale-97"><i class="fas fa-arrow-left text-[10px]"></i>Profile Selection</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer x-show="authState==='app'&&!isPlayerOpen" class="relative z-10 py-12 px-4 flex justify-center mb-16 md:mb-0">
+  <div class="flex items-center justify-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
+    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"><i class="fas fa-play text-white text-sm ml-1"></i></div>
+    <span class="font-display text-2xl font-bold text-white tracking-wide">AnimaVerse</span>
+  </div>
+</footer>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyBJD8Sc4a3jggSP0MtNXLD-KswVDEAknfE",authDomain:"movie-show-151e1.firebaseapp.com",databaseURL:"https://movie-show-151e1-default-rtdb.firebaseio.com",projectId:"movie-show-151e1",storageBucket:"movie-show-151e1.firebasestorage.app",messagingSenderId:"1002200056035",appId:"1:1002200056035:web:03872bf9f9ad5b060f45d6",measurementId:"G-J3LQMD8VPG"};
+const fbApp=firebase.initializeApp(firebaseConfig);
+const fbAuth=firebase.auth();
+const fbDB=firebase.database();
+
+// ✅ Safe localStorage — works even if WebView/app blocks storage
+const safeStorage={
+  _mem:{},
+  getItem(k){try{return localStorage.getItem(k);}catch(e){return this._mem[k]||null;}},
+  setItem(k,v){try{localStorage.setItem(k,v);}catch(e){this._mem[k]=v;}},
+  removeItem(k){try{localStorage.removeItem(k);}catch(e){delete this._mem[k];}},
+};
+
+// ✅ Use LOCAL persistence — keeps users logged in until they explicitly sign out
+fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+
+function app(){
+  const AK='8e590bf5bf68de8bb9f886eabc4fb9b6';
+  const B='https://api.themoviedb.org/3';
+  const AN=16;
+  const VB='https://www.vidbinge.to';
+  const VB_API='https://www.vidbinge.to/api/discover';
+
+  return{
+    // Splash
+    splashDone:false,
+
+    // Auth
+    authState:'loading', authMode:'signin', authView:'signin',
+    authEmail:'',authPassword:'',authName:'',
+    authError:'',authSuccess:'',authLoading:false,showPw:false,
+    firebaseUser:null,userRole:'User',allUsers:[],
+    otpDigits:['','','','','',''],generatedOtp:'',otpCooldown:0,otpTimer:null,pendingAuthAction:null,
+    currentProfile:null,
+    profiles:[
+      {name:'Explorer',icon:'fas fa-rocket',label:'Space Explorer',color1:'#8B5CF6',color2:'#3B82F6'},
+      {name:'Dreamer',icon:'fas fa-moon',label:'Starry Dreamer',color1:'#EC4899',color2:'#F97316'},
+      {name:'Hero',icon:'fas fa-bolt',label:'Super Hero',color1:'#10B981',color2:'#06B6D4'},
+      {name:'Kids',icon:'fas fa-star',label:'Little Star',color1:'#FBBF24',color2:'#F97316'},
+    ],
+    navTabs:[{id:'home',label:'Home',icon:'fa-house'},{id:'movies',label:'Movies',icon:'fa-film'},{id:'tvshows',label:'Series',icon:'fa-tv'},{id:'mylist',label:'My List',icon:'fa-bookmark'}],
+    scrolled:false,searchOpen:false,searchQuery:'',searchResults:[],searchLoading:false,
+    activeTab:'home',loading:false,heroMovie:null,contentRows:[],
+    showModal:false,selectedMovie:null,modalDetails:null,modalSeason:1,modalEpisodes:[],
+    isPlayerOpen:false,playerUrl:'',playingContent:null,
+    selectedSeason:1,selectedEpisode:1,totalSeasons:1,episodes:[],
+    myList:[],continueWatching:[],playerProvider:'vidbinge',
+    showSettings:false,settingsTab:'settings',profileDD:false,
+    vbStats:{movies:'—',shows:'—'},
+
+    async init(){
+      // Show splash for minimum time
+      setTimeout(()=>{this.splashDone=true;},1800);
+
+      // Firebase auth state - handles refresh persistence
+      fbAuth.onAuthStateChanged(async u=>{
+        if(u){
+          this.firebaseUser=u;
+          await this.loadUserData(u);
+          const sp=safeStorage.getItem('av_profile');
+          if(sp){
+            this.currentProfile=JSON.parse(sp);
+            this.authState='app';
+            this.loadAppData();
+            this.loadHomeContent();
+          }else{
+            this.authState='profileSelect';
+          }
+        }else{
+          // Check if coming back from Google redirect (WebView)
+          try{
+            const result=await fbAuth.getRedirectResult();
+            if(result&&result.user){
+              const u=result.user;
+              if(!u.email||!u.email.toLowerCase().endsWith('@gmail.com')){await u.delete();this.authState='auth';return;}
+              const uref=fbDB.ref('users/'+u.uid);const snap=await uref.once('value');
+              if(!snap.exists()){await uref.set({uid:u.uid,email:u.email,name:u.displayName||'',role:'User',photoURL:u.photoURL||'',createdAt:Date.now()});}
+              this.userRole=(snap.val()?.role)||'User';
+              this.firebaseUser=u;
+              const sp2=safeStorage.getItem('av_profile');
+              if(sp2){this.currentProfile=JSON.parse(sp2);this.authState='app';this.loadAppData();this.loadHomeContent();}else{this.authState='profileSelect';}
+              return;
+            }
+          }catch(e){}
+          this.firebaseUser=null;
+          this.authState='auth';
+          this.currentProfile=null;
+        }
+      });
+      window.addEventListener('scroll',()=>{this.scrolled=window.scrollY>20;},{passive:true});
+    },
+
+    // ===== Helpers =====
+    getItemPoster(item){
+      if(item.poster_path)return'https://image.tmdb.org/t/p/w342'+item.poster_path;
+      if(item.poster)return item.poster;
+      return'https://placehold.co/342x513/1A1D2E/8B8FA3?text=?';
+    },
+    getItemYear(item){
+      if(item.release_date)return item.release_date.substring(0,4);
+      if(item.first_air_date)return item.first_air_date.substring(0,4);
+      if(item.year)return String(item.year);
+      return'';
+    },
+    normalizeVBItem(vbItem,type){
+      return{
+        id:vbItem.tmdb_id||vbItem.tmdbid||vbItem.id,
+        title:type==='movie'?(vbItem.title||vbItem.name):undefined,
+        name:type==='tv'?(vbItem.title||vbItem.name):undefined,
+        poster_path:null,poster:vbItem.poster||'',backdrop_path:vbItem.backdrop||'',
+        vote_average:vbItem.rating||vbItem.vote_average||0,
+        overview:vbItem.overview||vbItem.description||'',
+        release_date:type==='movie'?(vbItem.year?vbItem.year+'-01-01':''):undefined,
+        first_air_date:type==='tv'?(vbItem.year?vbItem.year+'-01-01':''):undefined,
+        year:vbItem.year||'',media_type:type,_vbAvailable:true,_vbOriginal:vbItem
+      };
+    },
+
+    // ===== VidBinge API =====
+    async fetchVBMovies(params=''){try{const r=await fetch(`${VB_API}/movies?resultsPerPage=20&${params}`);const d=await r.json();return(d.result?.items||d.items||d.results||[]).map(i=>this.normalizeVBItem(i,'movie'));}catch(e){return[];}},
+    async fetchVBTV(params=''){try{const r=await fetch(`${VB_API}/tv?resultsPerPage=20&${params}`);const d=await r.json();return(d.result?.items||d.items||d.results||[]).map(i=>this.normalizeVBItem(i,'tv'));}catch(e){return[];}},
+    async fetchVBTrending(type='movie',period='day'){try{const r=await fetch(`${VB_API}/views?type=${type}&views=${period}&resultsPerPage=20`);const d=await r.json();return(d.result?.items||d.items||d.results||[]).map(i=>this.normalizeVBItem(i,type));}catch(e){return[];}},
+
+    // ===== Auth =====
+    validateEmail(e){if(!e||!e.trim())return'Enter an email address';if(!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(e.trim()))return'Only @gmail.com allowed';return null;},
+    generateOtp(){return Math.floor(100000+Math.random()*900000).toString();},
+    async sendOtpEmail(email,otp){
+      // Store OTP in memory only (no Firebase DB) — works in Android WebView
+      this._otpStore={otp, createdAt:Date.now(), email};
+      // In production: call your own backend/email API here
+      this.authSuccess=`Verification code: ${otp} (save this code)`;
+      return true;
+    },
+    async handleEmailAuth(){
+      this.authError='';this.authSuccess='';
+      const ee=this.validateEmail(this.authEmail);if(ee){this.authError=ee;return;}
+      if(!this.authPassword||this.authPassword.length<6){this.authError='Password must be 6+ characters';return;}
+      if(this.authMode==='signup'&&(!this.authName||this.authName.trim().length<2)){this.authError='Enter your name';return;}
+      this.authLoading=true;
+      try{this.generatedOtp=this.generateOtp();await this.sendOtpEmail(this.authEmail,this.generatedOtp);this.pendingAuthAction=this.authMode;this.otpDigits=['','','','','',''];this.authView='otp';this.startOtpCooldown();}catch(e){this.authError=e.message||'Failed to send code';}
+      this.authLoading=false;
+    },
+    startOtpCooldown(){this.otpCooldown=60;if(this.otpTimer)clearInterval(this.otpTimer);this.otpTimer=setInterval(()=>{this.otpCooldown--;if(this.otpCooldown<=0){clearInterval(this.otpTimer);this.otpTimer=null;}},1000);},
+    async resendOtp(){if(this.otpCooldown>0)return;this.authError='';this.authLoading=true;try{this.generatedOtp=this.generateOtp();await this.sendOtpEmail(this.authEmail,this.generatedOtp);this.otpDigits=['','','','','',''];this.startOtpCooldown();}catch(e){this.authError='Failed to resend';}this.authLoading=false;},
+    handleOtpInput(ev,i){const v=ev.target.value.replace(/\D/g,'');this.otpDigits[i]=v.charAt(0)||'';ev.target.value=this.otpDigits[i];if(v&&i<5){const n=document.getElementById('otp-'+(i+1));if(n)n.focus();}},
+    handleOtpKeydown(ev,i){if(ev.key==='Backspace'&&!this.otpDigits[i]&&i>0){const p=document.getElementById('otp-'+(i-1));if(p){p.focus();this.otpDigits[i-1]='';}}},
+    handleOtpPaste(ev){ev.preventDefault();const p=(ev.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);for(let i=0;i<6;i++)this.otpDigits[i]=p[i]||'';const el=document.getElementById('otp-'+Math.min(p.length,5));if(el)el.focus();},
+    async verifyOtp(){
+      this.authError='';this.authLoading=true;const entered=this.otpDigits.join('');
+      try{
+        // Verify OTP from in-memory store (no Firebase DB read needed)
+        const d=this._otpStore;
+        if(!d||d.otp!==entered){this.authError='Invalid code';this.authLoading=false;return;}
+        if(Date.now()-d.createdAt>600000){this.authError='Code expired';this.authLoading=false;return;}
+        this._otpStore=null;
+        if(this.pendingAuthAction==='signup'){const c=await fbAuth.createUserWithEmailAndPassword(this.authEmail,this.authPassword);await c.user.updateProfile({displayName:this.authName});const role='User';await fbDB.ref('users/'+c.user.uid).set({uid:c.user.uid,email:this.authEmail,name:this.authName,role,createdAt:Date.now()});this.userRole=role;this.firebaseUser=c.user;}
+        else{const c=await fbAuth.signInWithEmailAndPassword(this.authEmail,this.authPassword);this.firebaseUser=c.user;await this.loadUserData(c.user);}
+        this.authView='success';this.authSuccess='';
+        setTimeout(()=>{const sp=safeStorage.getItem('av_profile');if(sp){this.currentProfile=JSON.parse(sp);this.authState='app';this.loadAppData();this.loadHomeContent();}else{this.authState='profileSelect';}},1500);
+      }catch(e){let m=e.message||'Auth failed';if(e.code==='auth/email-already-in-use')m='Email already registered.';if(e.code==='auth/user-not-found')m='No account found.';if(e.code==='auth/wrong-password'||e.code==='auth/invalid-credential')m='Wrong password.';this.authError=m;}
+      this.authLoading=false;
+    },
+    async signInWithGoogle(){
+      this.authError='';this.authLoading=true;
+      const prov=new firebase.auth.GoogleAuthProvider();
+      prov.addScope('email');
+      try{
+        // Try popup first (works in browser)
+        const res=await fbAuth.signInWithPopup(prov);
+        const u=res.user;
+        if(!u.email||!u.email.toLowerCase().endsWith('@gmail.com')){await u.delete();this.authError='Only @gmail.com allowed';this.authLoading=false;return;}
+        try{const uref=fbDB.ref('users/'+u.uid);const snap=await uref.once('value');if(!snap.exists()){await uref.set({uid:u.uid,email:u.email,name:u.displayName||'',role:'User',photoURL:u.photoURL||'',createdAt:Date.now()});}this.userRole=(snap.val()?.role)||'User';}catch(dbErr){this.userRole='User';}
+        this.firebaseUser=u;this.authView='success';
+        setTimeout(()=>{const sp=safeStorage.getItem('av_profile');if(sp){this.currentProfile=JSON.parse(sp);this.authState='app';this.loadAppData();this.loadHomeContent();}else{this.authState='profileSelect';}},1500);
+      }catch(e){
+        if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment'||e.code==='auth/popup-closed-by-user'){
+          // Popup blocked by WebView — use redirect instead
+          try{
+            this.authError='';
+            await fbAuth.signInWithRedirect(prov);
+            // Page will redirect — nothing runs after this
+          }catch(re){this.authError=re.message||'Google sign-in failed';}
+        } else {
+          this.authError=e.message||'Google sign-in failed';
+        }
+      }
+      this.authLoading=false;
+    },
+    async loadUserData(u){try{const snap=await fbDB.ref('users/'+u.uid).once('value');const d=snap.val();if(d){this.userRole=d.role||'User';}else{const r='User';await fbDB.ref('users/'+u.uid).set({uid:u.uid,email:u.email,name:u.displayName||'',role:r,photoURL:u.photoURL||'',createdAt:Date.now()});this.userRole=r;}}catch(e){this.userRole='User';}},
+    async fetchAllUsers(){try{const s=await fbDB.ref('users').once('value');this.allUsers=s.val()?Object.values(s.val()):[];}catch(e){}},
+    async signOut(){try{await fbAuth.signOut();}catch(e){}this.currentProfile=null;this.firebaseUser=null;this.authState='auth';this.authView='signin';this.authMode='signin';this.authEmail='';this.authPassword='';this.authName='';this.authError='';this.authSuccess='';this.isPlayerOpen=false;this.playerUrl='';this.heroMovie=null;this.contentRows=[];this.profileDD=false;safeStorage.removeItem('av_profile');
+    },
+
+    // ===== App =====
+    async loadAppData(){
+      const sp=safeStorage.getItem('av_profiles');if(sp)this.profiles=JSON.parse(sp);this.myList=JSON.parse(safeStorage.getItem('av_mylist')||'[]');this.continueWatching=JSON.parse(safeStorage.getItem('av_continue')||'[]');this.playerProvider=safeStorage.getItem('av_player')||'vidbinge';
+    },
+    selectProfile(p){this.currentProfile=p;safeStorage.setItem('av_profile',JSON.stringify(p));this.authState='app';this.showSettings=false;this.loadAppData();this.loadHomeContent();},
+    goToProfileSelect(){this.currentProfile=null;safeStorage.removeItem('av_profile');this.authState='profileSelect';this.isPlayerOpen=false;this.showSettings=false;this.activeTab='home';},
+    saveProfiles(){safeStorage.setItem('av_profiles',JSON.stringify(this.profiles));},
+    uploadAvatar(ev, p) {
+      const file = ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        p.avatar = e.target.result;
+        this.saveProfiles();
+        if(this.currentProfile?.name === p.name) {
+            this.currentProfile = p;
+            localStorage.setItem('av_profile', JSON.stringify(p));
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+    goHome(){this.activeTab='home';this.searchQuery='';this.isPlayerOpen=false;this.loadHomeContent();},
+    switchTab(t){if(t==='home')return this.goHome();if(t==='movies'){this.activeTab='movies';this.fetchMovies();}else if(t==='tvshows'){this.activeTab='tvshows';this.fetchTV();}else{this.activeTab=t;}this.isPlayerOpen=false;this.searchQuery='';},
+    toggleSearch(){this.searchOpen=!this.searchOpen;if(this.searchOpen)this.$nextTick(()=>this.$refs.searchInput?.focus());else{this.searchQuery='';this.searchResults=[];}},
+    async performSearch(){if(this.searchQuery.length<2){this.searchResults=[];return;}this.searchLoading=true;try{const r=await fetch(`${B}/search/multi?api_key=${AK}&query=${encodeURIComponent(this.searchQuery)}&page=1`);const d=await r.json();this.searchResults=(d.results||[]).filter(i=>i.media_type==='movie'||i.media_type==='tv');}catch(e){}this.searchLoading=false;},
+    async tmdb(ep){try{const r=await fetch(`${B}${ep}${ep.includes('?')?'&':'?'}api_key=${AK}`);const d=await r.json();return d.results||d;}catch(e){return[];}},
+
+    // ===== Content Loading =====
+    async loadHomeContent(){
+      this.loading=true;
+      const[anim,trend,vbTM,vbTT,vbPM,vbPT]=await Promise.all([
+        this.tmdb(`/discover/movie?with_genres=${AN}&sort_by=popularity.desc&page=1`),
+        this.tmdb('/trending/all/week?page=1'),
+        this.fetchVBTrending('movie','day').catch(()=>[]),
+        this.fetchVBTrending('tv','day').catch(()=>[]),
+        this.fetchVBMovies('ordering=views&direction=desc').catch(()=>[]),
+        this.fetchVBTV('ordering=views&direction=desc').catch(()=>[]),
+      ]);
+      const pool=anim.filter(m=>m.backdrop_path);
+      this.heroMovie=pool.length>0?pool[Math.floor(Math.random()*Math.min(5,pool.length))]:(trend.find(m=>m.backdrop_path)||trend[0]);
+      this.contentRows=[];
+      if(this.continueWatching.length>0)this.contentRows.push({title:'Continue Watching',items:this.continueWatching});
+      if(vbTM.length>0)this.contentRows.push({title:'🔥 Trending Today on VidBinge',items:vbTM,isVidBinge:true});
+      if(vbTT.length>0)this.contentRows.push({title:'📺 Trending Series on VidBinge',items:vbTT,isVidBinge:true});
+      this.contentRows.push({title:'Trending This Week',items:trend.slice(0,20)});
+      if(vbPM.length>0)this.contentRows.push({title:'Most Watched Movies',items:vbPM,isVidBinge:true});
+      const rows=[
+        {title:'Popular Animated',ep:`/discover/movie?with_genres=${AN}&sort_by=popularity.desc&page=1`},
+        {title:'Top Rated Animation',ep:`/discover/movie?with_genres=${AN}&sort_by=vote_average.desc&vote_count.gte=500`},
+        {title:'Now Playing',ep:'/movie/now_playing?page=1'},
+        {title:'Popular Movies',ep:'/movie/popular?page=1'},
+        {title:'Action',ep:'/discover/movie?with_genres=28&sort_by=popularity.desc'},
+        {title:'Comedy',ep:'/discover/movie?with_genres=35&sort_by=popularity.desc'},
+        {title:'Sci-Fi & Fantasy',ep:'/discover/movie?with_genres=878,14&sort_by=popularity.desc'},
+      ];
+      const res=await Promise.all(rows.map(async r=>({title:r.title,items:(await this.tmdb(r.ep)).slice(0,20)})));
+      res.forEach(r=>this.contentRows.push(r));
+      if(vbPT.length>0)this.contentRows.push({title:'Most Watched Series',items:vbPT,isVidBinge:true});
+      const rows2=[{title:'Animated Series',ep:`/discover/tv?with_genres=${AN}&sort_by=popularity.desc`},{title:'Top TV',ep:'/tv/top_rated?page=1'},{title:'Family',ep:'/discover/movie?with_genres=10751&sort_by=popularity.desc'}];
+      const res2=await Promise.all(rows2.map(async r=>({title:r.title,items:(await this.tmdb(r.ep)).slice(0,20)})));
+      res2.forEach(r=>this.contentRows.push(r));
+      if(trend.length>0){const mid=Math.max(1,Math.floor(this.contentRows.length/2));this.contentRows.splice(mid,0,{title:'🔥 Top Trending',items:trend.slice(0,4),isTopList:true});}
+      this.loading=false;
+    },
+    async fetchMovies(){
+      this.loading=true;this.isPlayerOpen=false;
+      const[a,vbP,vbT,vbW]=await Promise.all([this.tmdb(`/discover/movie?with_genres=${AN}&sort_by=popularity.desc&page=1`),this.fetchVBMovies('ordering=views&direction=desc').catch(()=>[]),this.fetchVBTrending('movie','day').catch(()=>[]),this.fetchVBTrending('movie','week').catch(()=>[])]);
+      const pool=a.filter(m=>m.backdrop_path);this.heroMovie=pool.length>0?pool[Math.floor(Math.random()*Math.min(5,pool.length))]:a[0];
+      this.contentRows=[];
+      if(vbT.length>0)this.contentRows.push({title:'🔥 Trending Today',items:vbT,isVidBinge:true});
+      if(vbW.length>0)this.contentRows.push({title:'📈 Trending This Week',items:vbW,isVidBinge:true});
+      if(vbP.length>0)this.contentRows.push({title:'Most Watched',items:vbP,isVidBinge:true});
+      const rows=[{title:'Popular Animated',ep:`/discover/movie?with_genres=${AN}&sort_by=popularity.desc&page=1`},{title:'Top Rated',ep:`/discover/movie?with_genres=${AN}&sort_by=vote_average.desc&vote_count.gte=500`},{title:'Now Playing',ep:'/movie/now_playing?page=1'},{title:'Upcoming',ep:'/movie/upcoming?page=1'},{title:'Comedy',ep:`/discover/movie?with_genres=35,16&sort_by=popularity.desc`},{title:'Family',ep:'/discover/movie?with_genres=10751&sort_by=popularity.desc'},{title:'Sci-Fi',ep:'/discover/movie?with_genres=14,878&sort_by=popularity.desc'},{title:'All Popular',ep:'/movie/popular?page=1'}];
+      const res=await Promise.all(rows.map(async r=>({title:r.title,items:(await this.tmdb(r.ep)).slice(0,20)})));
+      res.forEach(r=>this.contentRows.push(r));
+      if(vbT.length>0){const mid=Math.max(1,Math.floor(this.contentRows.length/2));this.contentRows.splice(mid,0,{title:'🔥 Top Trending Movies',items:vbT.slice(0,4),isTopList:true});}
+      this.loading=false;
+    },
+    async fetchTV(){
+      this.loading=true;this.isPlayerOpen=false;
+      const[a,vbP,vbT]=await Promise.all([this.tmdb(`/discover/tv?with_genres=${AN}&sort_by=popularity.desc`),this.fetchVBTV('ordering=views&direction=desc').catch(()=>[]),this.fetchVBTrending('tv','day').catch(()=>[])]);
+      const pool=a.filter(m=>m.backdrop_path);if(pool.length>0){const h=pool[Math.floor(Math.random()*Math.min(5,pool.length))];h.media_type='tv';this.heroMovie=h;}
+      this.contentRows=[];
+      if(vbT.length>0)this.contentRows.push({title:'🔥 Trending Series Today',items:vbT,isVidBinge:true});
+      if(vbP.length>0)this.contentRows.push({title:'Most Watched Series',items:vbP,isVidBinge:true});
+      const rows=[{title:'Popular Animated Series',ep:`/discover/tv?with_genres=${AN}&sort_by=popularity.desc`},{title:'Top Rated',ep:`/discover/tv?with_genres=${AN}&sort_by=vote_average.desc&vote_count.gte=200`},{title:'Airing Today',ep:'/tv/airing_today?page=1'},{title:'Popular TV',ep:'/tv/popular?page=1'},{title:'Drama',ep:'/discover/tv?with_genres=18&sort_by=popularity.desc'},{title:'Comedy',ep:'/discover/tv?with_genres=35&sort_by=popularity.desc'},{title:'Sci-Fi & Fantasy',ep:'/discover/tv?with_genres=10765&sort_by=popularity.desc'}];
+      const res=await Promise.all(rows.map(async r=>{const items=(await this.tmdb(r.ep)).slice(0,20);items.forEach(i=>{if(!i.media_type)i.media_type='tv';});return{title:r.title,items};}));
+      res.forEach(r=>this.contentRows.push(r));
+      if(vbT.length>0){const mid=Math.max(1,Math.floor(this.contentRows.length/2));this.contentRows.splice(mid,0,{title:'🔥 Top Trending Series',items:vbT.slice(0,4),isTopList:true});}
+      this.loading=false;
+    },
+    scrollRow(ev,dir){const c=ev.target.closest('.row-wrap');const s=c?.querySelector('.row-scroll');if(s)s.scrollBy({left:dir*600,behavior:'smooth'});},
+    async openModal(item){
+      const tmdbId=item.id||item.tmdb_id;if(!tmdbId)return;
+      this.selectedMovie=item;this.selectedMovie.id=tmdbId;this.showModal=true;this.modalSeason=1;this.modalEpisodes=[];this.modalDetails=null;
+      const t=this.isTV(item)?'tv':'movie';
+      try{const r=await fetch(`${B}/${t}/${tmdbId}?api_key=${AK}`);this.modalDetails=await r.json();
+        if(!this.selectedMovie.overview&&this.modalDetails.overview)this.selectedMovie.overview=this.modalDetails.overview;
+        if(!this.selectedMovie.backdrop_path&&this.modalDetails.backdrop_path)this.selectedMovie.backdrop_path=this.modalDetails.backdrop_path;
+        if(!this.selectedMovie.poster_path&&this.modalDetails.poster_path)this.selectedMovie.poster_path=this.modalDetails.poster_path;
+        if(!this.selectedMovie.vote_average&&this.modalDetails.vote_average)this.selectedMovie.vote_average=this.modalDetails.vote_average;
+        if(t==='tv'&&this.modalDetails.number_of_seasons>0)this.fetchModalEpisodes();
+      }catch(e){}
+    },
+    async fetchModalEpisodes(){if(!this.selectedMovie)return;try{const r=await fetch(`${B}/tv/${this.selectedMovie.id}/season/${this.modalSeason}?api_key=${AK}`);const d=await r.json();this.modalEpisodes=d.episodes||[];}catch(e){}},
+    closeModal(){this.showModal=false;setTimeout(()=>{this.selectedMovie=null;this.modalDetails=null;this.modalEpisodes=[];},300);},
+    isTV(i){if(!i)return false;return i.media_type==='tv'||i.first_air_date||(i.name&&!i.title);},
+    getPlayerUrl(i,s,e){
+      const id=i.id||i.tmdb_id;
+      if(this.playerProvider==='screenscape'){return this.isTV(i)?`https://screenscape.me/embed?tmdb=${id}&type=tv&s=${s||1}&e=${e||1}&lan=eng`:`https://screenscape.me/embed?tmdb=${id}&type=movie&lan=eng`;}
+      if(this.playerProvider==='vidbinge'){return this.isTV(i)?`${VB}/tv/${id}/${s||1}/${e||1}`:`${VB}/movie/${id}`;}
+      if(this.playerProvider==='vembed'){return this.isTV(i)?`https://vembed.click/play/${id}_s${s||1}_e${e||1}`:`https://vembed.click/play/${id}`;}
+      if(this.playerProvider==='mafia'){return this.isTV(i)?`https://embed.streammafia.to/embed/tv/${id}/${s||1}/${e||1}`:`https://embed.streammafia.to/embed/movie/${id}`;}
+      if(this.playerProvider==='moviesapi'){return this.isTV(i)?`https://moviesapi.club/tv/${id}-${s||1}-${e||1}`:`https://moviesapi.club/movie/${id}`;}
+      if(this.playerProvider==='smashy'){return this.isTV(i)?`https://player.smashy.stream/tv/${id}?s=${s||1}&e=${e||1}`:`https://player.smashy.stream/movie/${id}`;}
+      if(this.playerProvider==='vidlink'){return this.isTV(i)?`https://vidlink.pro/tv/${id}/${s||1}/${e||1}`:`https://vidlink.pro/movie/${id}`;}
+      if(this.playerProvider==='vidsrc'){return this.isTV(i)?`https://vidsrc.to/embed/tv/${id}/${s||1}/${e||1}`:`https://vidsrc.to/embed/movie/${id}`;}
+      if(this.playerProvider==='vixsrc'){return this.isTV(i)?`https://vixsrc.to/embed/tv/${id}/${s||1}/${e||1}`:`https://vixsrc.to/embed/movie/${id}`;}
+      if(this.playerProvider==='superembed'){return this.isTV(i)?`https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s||1}&e=${e||1}`:`https://multiembed.mov/?video_id=${id}&tmdb=1`;}
+      return this.isTV(i)?`https://indraembed.netlify.app/tv/${id}/${s||1}/${e||1}`:`https://indraembed.netlify.app/movie/${id}`;
+    },
+    switchPlayerProvider(provider){
+      this.playerProvider=provider;this.saveSettings();
+      if(this.playingContent&&this.isPlayerOpen){
+        if (this.isTV(this.playingContent)) {
+          this.playEpisode(this.selectedEpisode);
+        } else {
+          this.playContent(this.playingContent);
+        }
+      }
+    },
+    async handleProviderPlay(item, s, e) {
+       this.playerUrl = this.isTV(item) ? this.getPlayerUrl(item, s, e) : this.getPlayerUrl(item);
+    },
+    async playContent(item){
+      this.showModal=false;this.playingContent=item;this.isPlayerOpen=true;
+      if(this.isTV(item)){
+        this.selectedSeason=1;this.selectedEpisode=1;
+        try{const r=await fetch(`${B}/tv/${item.id}?api_key=${AK}`);const d=await r.json();this.totalSeasons=d.number_of_seasons||1;this.fetchEpisodes(item.id,1);}catch(e){}
+        this.handleProviderPlay(item, 1, 1);
+      } else {
+        this.episodes=[];this.totalSeasons=0;
+        this.handleProviderPlay(item, null, null);
+      }
+      this.addToContinueWatching(item);window.scrollTo({top:0,behavior:'smooth'});
+    },
+    playTVFromModal(item,s,e){
+      this.showModal=false;this.playingContent=item;this.isPlayerOpen=true;this.selectedSeason=s;this.selectedEpisode=e;
+      (async()=>{try{const r=await fetch(`${B}/tv/${item.id}?api_key=${AK}`);const d=await r.json();this.totalSeasons=d.number_of_seasons||1;this.fetchEpisodes(item.id,s);}catch(e){}})();
+      this.handleProviderPlay(item, s, e);
+      this.addToContinueWatching(item);window.scrollTo({top:0,behavior:'smooth'});
+    },
+    async fetchEpisodes(id,s){try{const r=await fetch(`${B}/tv/${id}/season/${s}?api_key=${AK}`);const d=await r.json();this.episodes=d.episodes||[];}catch(e){}},
+    playEpisode(n){
+      this.selectedEpisode=n;
+      this.handleProviderPlay(this.playingContent, this.selectedSeason, n);
+    },
+    closePlayer(){
+      this.isPlayerOpen=false;this.playerUrl='';this.playingContent=null;
+    },
+    isInMyList(id){return this.myList.some(i=>i.id===id);},
+    toggleMyList(item){if(!item)return;if(this.isInMyList(item.id))this.myList=this.myList.filter(i=>i.id!==item.id);else this.myList.push({...item});safeStorage.setItem('av_mylist',JSON.stringify(this.myList));},
+    addToContinueWatching(item){if(!item)return;this.continueWatching=this.continueWatching.filter(i=>i.id!==item.id);this.continueWatching.unshift({...item});if(this.continueWatching.length>20)this.continueWatching=this.continueWatching.slice(0,20);safeStorage.setItem('av_continue',JSON.stringify(this.continueWatching));},
+    saveSettings(){safeStorage.setItem('av_player',this.playerProvider);},
+    clearContinueWatching(){this.continueWatching=[];safeStorage.removeItem('av_continue');},
+    clearMyList(){this.myList=[];safeStorage.removeItem('av_mylist');},
+  }
+}
+</script>
+</body>
+</html>
