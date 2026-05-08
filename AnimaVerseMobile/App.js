@@ -3,15 +3,15 @@ import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
-  const htmlContent = require('./assets/index.html');
   return (
     <View style={styles.container}>
       <WebView 
-        source={htmlContent}
+        source={{ uri: 'https://animaversemovies.blogspot.com/' }}
         style={{ flex: 1 }}
         originWhitelist={['*']}
         allowsInlineMediaPlayback={true}
         mediaPlaybackRequiresUserAction={false}
+        mixedContentMode="always"
       />
       <StatusBar style="light" hidden={true} />
     </View>
